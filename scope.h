@@ -26,10 +26,13 @@ struct waveform {
 	U16 frequency;
 	U16 peak_to_peak;
 	U16 max;
+	U16 min;
+	U16 pp_v;
 };
 
 struct scope {
 	U16 timebase;
+	U16 timebase_ch;
 	__IO U8 done_sampling;
 };
 

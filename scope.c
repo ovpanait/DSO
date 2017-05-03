@@ -12,33 +12,51 @@ void scope_init(void)
 {
 	dso_scope.done_sampling = 0;
 	dso_scope.timebase = 1000;
+	dso_scope.timebase_ch = 1;
 }
 
 void waveform_init(void) 
 {
 	U16 i;
-	for(i = 0; i< WD_WIDTH / 2; ++i)
+	for(i = 0; i< WD_WIDTH; ++i)
 		wave.samples[i] = 0;
 
 	wave.midpoint = WD_MIDY;
+	wave.min = WD_HEIGHT - WD_OFFSETY;
+	wave.max = WD_OFFSETY;
 }
 
 void waveform_display(void)
 {
-	U8 buf[5];
+	/* Clear current waveform in one go */
+	FillRect(WD_OFFSETX, wave.max, WD_WIDTH, wave.min - wave.max + 2, BG_CL);
+
+	display_grid();
 	U16 xpos = 10;
+	U8 buf[5];
 	U16 i = 0, current_ypos = 0, prev_ypos = 0;
 	S16 diff = 0;
 	U16 midpoint = wave.midpoint;
-	ClrScreen();
 
 	/* Display first sample */
 	prev_ypos = GET_SAMPLE(wave.samples[i++]);
 	FillRect(xpos++, midpoint - prev_ypos, 2, 2, WF_CL);
 
+	/* Max and min */
+	wave.max = midpoint - prev_ypos;
+	wave.min = midpoint - prev_ypos;
+
 	/* Display the rest */
 	for(; i < SAMPLES_NR; ++i, ++xpos) {
 		current_ypos = GET_SAMPLE(wave.samples[i]);
+		
+		/* Update min and max */
+		if(midpoint - current_ypos < wave.max)
+			wave.max = midpoint - current_ypos;
+		if(midpoint - current_ypos > wave.min)
+			wave.min = midpoint - current_ypos;
+
+		/* Display sample accordingly */
 		diff = current_ypos - prev_ypos;
 		if(diff > 1 && diff <= WD_HEIGHT / 2 )
 			FillRect(xpos, midpoint - current_ypos, 2, 2 + diff, WF_CL);
@@ -48,7 +66,16 @@ void waveform_display(void)
 			FillRect(xpos, midpoint - current_ypos, 2, 2, WF_CL);
 		prev_ypos = current_ypos;
 	}
-	PutsGenic(5, 5, (U8 *)itoa(dso_scope.timebase, buf, 10), clWhite, clBlack, &ASC8X16);
+	
+	/*U8 buf[16];
+	itoa(wave.min - wave.max, buf, 16);
+	uputs(buf, USART1);
+	uputs("\n", USART1);*/
+
+	if(dso_scope.timebase_ch) {
+		PutsGenic(5, 5, (U8 *)itoa(dso_scope.timebase, buf, 10), clWhite, clBlack, &ASC8X16);
+		dso_scope.timebase_ch = 0;
+	}
 }
 
 /* void waveform_test()

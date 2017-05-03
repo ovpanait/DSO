@@ -1,12 +1,37 @@
+//////////////////////////////////////////////////////////////////////////////
+//
+// 	Filename:	Command.c
+//	Version:		
+//	Data:		
+//
+//	Author:		Liu, Zemin
+//	Company:	JYE Tech
+//
+//-----------------------------------------------------------------------------
+//
+// 	Target: 		STM32F103C8 
+// 	Tool chain: 	CodeSourcery G++
+//
+//-----------------------------------------------------------------------------
+//	Required files:
+//
+//-----------------------------------------------------------------------------
+//	Notes:
+//
+//
+//-----------------------------------------------------------------------------
+//	Revision History:
+//
+///////////////////////////////////////////////////////////////////////////////
 #include "stm32f10x.h"
 #include "stm32f10x_conf.h"
 
 #include "Common.h"
 #include "Board.h"
 #include "Command.h"
-#include "libdso138.h"
-#include "Screen.h"
-#include  "Eeprom.h"
+#include	"libdso138.h"
+#include	"Screen.h"
+#include 	"Eeprom.h"
 
 // ===========================================================
 // 	File Scope Global variables

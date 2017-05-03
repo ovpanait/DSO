@@ -21,23 +21,30 @@ int main (void)
 	 
 	 Port_Init();
 
+	/* Unlock the Flash Program Erase controller */
+	FLASH_Unlock();
 
-	 /* Unlock the Flash Program Erase controller */
-	 FLASH_Unlock();
-
-	 /* EEPROM Init */
+	/* EEPROM Init */
 	EE_Init();
 
 	TFT_Init_Ili9341();
 	 
 	/* Init USART1 */
-	 USART1_Init();
+	USART1_Init();
 
-	 tmp1 = clBlack;
-	 PutsGenic(24, 180, (U8 *)"Ovidiu Panait", clWhite, tmp1, &ASC8X16);
+	/* TEST */
+	U8 buf[16];
+	U8 test_nr = 0;
+	/*while(1) {
+		ClrScreen();
+		itoa(test_nr++, buf, 10);
+		PutsGenic(24, 180, buf, clWhite, clBlack, &ASC8X16);
+		for(int i = 0; i < 10; i++)
+			Delay(21500);
+	}*/
 	
 	ClrScreen();
-	display_grid();
+	//display_grid();
 
 	waveform_init();
 	scope_init();
@@ -64,6 +71,7 @@ int main (void)
 		waveform_display();
 		/* DMA1_Channel1 enable */
   		DMA_Cmd(DMA1_Channel1, ENABLE);
+		Delay(65000);
 		Delay(65000);
 		Delay(65000);
 	}

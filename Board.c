@@ -387,7 +387,7 @@ void uputU16(U16 data, USART_TypeDef* USARTx)
 	UartPutc((U8) data, USARTx);
 	UartPutc(data >> 8, USARTx);
 }
-
+/*
  void	TIM3_Init(void)
 {
  // Disable counter first
@@ -401,25 +401,25 @@ void uputU16(U16 data, USART_TypeDef* USARTx)
 		| (0 << CKD);          		//!<CKD[1:0] bits (clock division for filtering) 0 = 1/1, 1 = 1/2, 2 = 1/4
 
  TIM3->CR2 = (0 << CCPC)           	//<Capture/Compare Preloaded Control //
-		| (0 << CCUS)           	//<Capture/Compare Control Update Selection //
-		| (0 << CCDS)           	//<Capture/Compare DMA Selection //
-		| (0 << MMS)           		//<MMS[2:0] bits (Master Mode Selection) //
-		| (0 << TI1S)           	//<TI1 Selection //
-		| (0 << OIS1)           	//<Output Idle state 1 (OC1 output) //
-		| (0 << OIS1N)           	//<Output Idle state 1 (OC1N output) //
-		| (0 << OIS2)           	//<Output Idle state 2 (OC2 output) //
-		| (0 << OIS2N)           	//<Output Idle state 2 (OC2N output) //
-		| (0 << OIS3)           	//<Output Idle state 3 (OC3 output) //
-		| (0 << OIS3N)           	//<Output Idle state 3 (OC3N output) //
-		| (0 << OIS4);           	//<Output Idle state 4 (OC4 output) //
+		| (0 << CCUS)           //<Capture/Compare Control Update Selection //
+		| (0 << CCDS)           //<Capture/Compare DMA Selection //
+		| (0 << MMS)           	//<MMS[2:0] bits (Master Mode Selection) //
+		| (0 << TI1S)           //<TI1 Selection //
+		| (0 << OIS1)           //<Output Idle state 1 (OC1 output) //
+		| (0 << OIS1N)          //<Output Idle state 1 (OC1N output) //
+		| (0 << OIS2)           //<Output Idle state 2 (OC2 output) //
+		| (0 << OIS2N)          //<Output Idle state 2 (OC2N output) //
+		| (0 << OIS3)           //<Output Idle state 3 (OC3 output) //
+		| (0 << OIS3N)          //<Output Idle state 3 (OC3N output) //
+		| (0 << OIS4);          //<Output Idle state 4 (OC4 output) //
 
  TIM3->SMCR = (0 << SMS)           	//<SMS[2:0] bits (Slave mode selection) //
-		| (0 << TS)           		//<TS[2:0] bits (Trigger selection) //
-		| (0 << MSM)           		//<Master/slave mode //
-		| (0 << ETF)           		//<ETF[3:0] bits (External trigger filter) //
-		| (0 << ETPS)           	//<ETPS[1:0] bits (External trigger prescaler) //
-		| (0 << ECE)           		//<External clock enable //
-		| (0 << ETP);           	//<External trigger polarity //
+		| (0 << TS)           	//<TS[2:0] bits (Trigger selection) //
+		| (0 << MSM)           	//<Master/slave mode //
+		| (0 << ETF)           	//<ETF[3:0] bits (External trigger filter) //
+		| (0 << ETPS)           //<ETPS[1:0] bits (External trigger prescaler) //
+		| (0 << ECE)           	//<External clock enable //
+		| (0 << ETP);           //<External trigger polarity //
 
  
  TIM3->DIER = (0 << UIE)           	//<Update interrupt enable //
@@ -583,6 +583,7 @@ void uputU16(U16 data, USART_TypeDef* USARTx)
 		| (0 << CKD);          		//<CKD[1:0] bits (clock division) //
 
 }
+*/
 
 void	TIM4_Init(void)
 {
@@ -1048,7 +1049,7 @@ void	TFT_Init_Ili9341(void)
 	
 	write_comm(0xB1); // Frame Rate Control
 	write_data(0x00);
-	write_data(0x18);
+	write_data(0x10);
 	
 	write_comm(0xB6); // Display Function Control
 	write_data(0x0a);

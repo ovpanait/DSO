@@ -290,10 +290,9 @@ void	ClrScreen(void)
 {
  FillRect(ScreenX0, ScreenY0, ScreenXsize, ScreenYsize, clBlack);
 }
-
 void ClrBlock(S16 x, S16 y, S16 size)
 {
-	FillRect(x, y, size, size, clBlack);
+	FillRect(x, y, size, size, BG_CL);
 }
 	
 void	SetWindow(U16 x, U16 xsize, U16 y, U16 ysize)

@@ -2,7 +2,7 @@
 
 #define	Screen_h
 
-#include	"Common.h"
+#include "Common.h"
 
 // ------------ Display parameters -----------------------
 // Overall display parameters
@@ -88,17 +88,17 @@ typedef struct {
 #define	WWindowSizey			200
 #define	WWindowMidValue			0x800
 
-#define	WD_WIDTH			300		// Wave display width
+#define	WD_WIDTH			301		// Wave display width
 #define WD_HEIGHT			200		// Wave display height
 #define WD_OFFSETX			10
-#define WD_OFFSETY			15
+#define WD_OFFSETY			20
 #define WD_MIDY				(WD_OFFSETY + (WD_HEIGHT / 2))
 #define BLK_PX				25		/* Pixels per block */
 
 /* Grid */
-#define GRID_WIDTH			2
-#define GRID_CENTER_WIDTH		2	
-#define GRID_CENTER_CL			clGray2
+#define GRID_WIDTH			1
+#define GRID_CENTER_WIDTH		1	
+#define GRID_CENTER_CL			clBlue
 #define GRID_DIST			25
 #define GRID_CL				clWhite
 
