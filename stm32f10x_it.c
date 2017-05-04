@@ -170,7 +170,7 @@ void SysTick_Handler(void)
 /**
   * @brief  This function handles PPP interrupt request.
   * @param  None
-  * @retval None
+  * @retval No	ne
   */
 /*void PPP_IRQHandler(void)
 {
@@ -184,6 +184,8 @@ void DMA1_Channel1_IRQHandler(void)
     DMA_ClearITPendingBit(DMA_IT_TC);
     /* Disable DMA Channel while the waveform is displayed */
     DMA_Cmd(DMA1_Channel1, DISABLE);
+    TIM_Cmd(TIM3, DISABLE);
+    /* Set waveform display flag */
     dso_scope.done_sampling = 1;
   }
 }
@@ -191,14 +193,19 @@ void DMA1_Channel1_IRQHandler(void)
 void TIM4_IRQHandler(void)
 {
 	TIM_ClearITPendingBit (TIM4, TIM_IT_Update);
-	dso_scope.done_sampling = 1;
-	
+	if(dso_scope.start_sampling){
+		dso_scope.start_sampling = 0;
+		/* Start sampling */
+  		TIM_Cmd(TIM3, ENABLE);
+		/* DMA1_Channel1 enable */
+  		DMA_Cmd(DMA1_Channel1, ENABLE);
+	}
 }
 
 void TIM3_IRQHandler(void)
 {
-	TIM_ClearITPendingBit (TIM3, TIM_IT_Update);
-	dso_scope.done_sampling = 1;
+	//TIM_ClearITPendingBit (TIM3, TIM_IT_Update);
+	//dso_scope.done_sampling = 1;
 }
 
 void ADC1_2_IRQHandler(void)

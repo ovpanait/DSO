@@ -288,7 +288,8 @@ FONT ASC8X16 = {
 // Clear screen
 void	ClrScreen(void)
 {
- FillRect(ScreenX0, ScreenY0, ScreenXsize, ScreenYsize, clBlack);
+ 	FillRect(ScreenX0, ScreenY0, ScreenXsize, ScreenYsize, BG_CL);
+
 }
 void ClrBlock(S16 x, S16 y, S16 size)
 {

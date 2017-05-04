@@ -31,9 +31,15 @@ struct waveform {
 };
 
 struct scope {
-	U16 timebase;
-	U16 timebase_ch;
+	U16 tb_i;
+	U16 timebase_flag;
 	__IO U8 done_sampling;
+	__IO U8 start_sampling;
+
+	/* External interrupt flags */
+	__IO U8 plus_btn_iflag;
+	__IO U8 minus_btn_iflag;
+
 };
 
 void waveform_display(void);
@@ -44,6 +50,7 @@ void scope_init(void);
 void ADCs_Init(void);
 void DMA_Configuration(void);
 void TIM3_Configuration(void);
+void TIM4_Configuration(void);
 void NVIC_Configuration(void);
 void start_sampling(void);
 

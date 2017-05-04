@@ -99,6 +99,7 @@ SRC += $(CMSISDIR)/system_stm32f10x.c
 ## used parts of the STM-Library
 SRC += $(STMSPDSRCDIR)/misc.c
 SRC += $(STMSPDSRCDIR)/stm32f10x_adc.c
+SRC += $(STMSPDSRCDIR)/stm32f10x_exti.c
 SRC += $(STMSPDSRCDIR)/stm32f10x_gpio.c
 SRC += $(STMSPDSRCDIR)/stm32f10x_usart.c
 SRC += $(STMSPDSRCDIR)/stm32f10x_rcc.c

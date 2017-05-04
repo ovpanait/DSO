@@ -52,28 +52,23 @@ int main (void)
 	char *test = "Done";
 	uputs(test, USART1);
 
-	/* Configure Interrupt controller */
-	NVIC_Configuration();
 	start_sampling();
 	uputs("Done initializing.\n", USART1);
-	DMA_Cmd(DMA1_Channel1, ENABLE);
 
 	while(1) {
-		/*for(int i = 0; i < 100; ++i)
-			Delay(65000);*/
 		while(!dso_scope.done_sampling)
 			;
 		/*char buf[16];
 		itoa(ADC_GetConversionValue(ADC1), buf, 10);
 		uputs(buf, USART1);
 		*/
+		/* Reset flags and display waveform */
 		dso_scope.done_sampling = 0;
 		waveform_display();
-		/* DMA1_Channel1 enable */
-  		DMA_Cmd(DMA1_Channel1, ENABLE);
 		Delay(65000);
-		Delay(65000);
-		Delay(65000);
+		dso_scope.start_sampling = 1;
+		
 	}
+	
 }	
 
