@@ -25,7 +25,6 @@
 
 #include "Common.h"
 #include "Board.h"
-#include "Command.h"
 //#include 	"FSM.h"
 #include "scope.h"
 
@@ -143,7 +142,7 @@ void PendSV_Handler(void)
   * @param  None
   * @retval None
   */
-void SysTick_Handler(void)
+/*void SysTick_Handler(void)
 {
  // Key scan
  if(--TimerKeyScan == 0) {
@@ -158,7 +157,7 @@ void SysTick_Handler(void)
 		GTimeout = 1;
 		}
  	}
-}
+}*/
 
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                  		*/
