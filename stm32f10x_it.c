@@ -25,10 +25,10 @@
 
 #include "Common.h"
 #include "Board.h"
-//#include 	"FSM.h"
 #include "scope.h"
 
 extern __IO struct scope dso_scope;
+extern __IO U16 timebase_pres[];
 
 /** @addtogroup STM32F10x_StdPeriph_Examples
   * @{
@@ -177,29 +177,35 @@ void PendSV_Handler(void)
 
 void DMA1_Channel1_IRQHandler(void)
 {
-  /* Test on DMA Stream Transfer Complete interrupt */
-  if(DMA_GetITStatus(DMA_IT_TC)) {
-    /* Clear DMA Transfer Complete interrupt pending bit */
-    DMA_ClearITPendingBit(DMA_IT_TC);
-    /* Disable DMA Channel while the waveform is displayed */
-    DMA_Cmd(DMA1_Channel1, DISABLE);
-    TIM_Cmd(TIM3, DISABLE);
-    /* Set waveform display flag */
-    dso_scope.done_sampling = 1;
+	/* Test on DMA Stream Transfer Complete interrupt */
+	if(DMA_GetITStatus(DMA_IT_TC)) {
+	/* Clear DMA Transfer Complete interrupt pending bit */
+	DMA_ClearITPendingBit(DMA_IT_TC);
+	/* Disable DMA Channel while the waveform is displayed */
+	DMA_Cmd(DMA1_Channel1, DISABLE);
+	TIM_Cmd(TIM3, DISABLE);
+	/* Start displaying the waveform */
+	dso_scope.done_sampling = 1;
+	/* Reset calibration sample */
+	dso_scope.prev_cal_samp = ADC_MAX;
+
+	/* Increase timer frequency */
+	TIM_SetCounter(TIM3, 40);
+	
   }
 }
 
-void TIM4_IRQHandler(void)
+/*void TIM4_IRQHandler(void)
 {
 	TIM_ClearITPendingBit (TIM4, TIM_IT_Update);
 	if(dso_scope.start_sampling){
 		dso_scope.start_sampling = 0;
 		/* Start sampling */
-  		TIM_Cmd(TIM3, ENABLE);
+  		//TIM_Cmd(TIM3, ENABLE);
 		/* DMA1_Channel1 enable */
-  		DMA_Cmd(DMA1_Channel1, ENABLE);
+  		/*DMA_Cmd(DMA1_Channel1, ENABLE);
 	}
-}
+}*/
 
 void TIM3_IRQHandler(void)
 {
@@ -209,9 +215,20 @@ void TIM3_IRQHandler(void)
 
 void ADC1_2_IRQHandler(void)
 {
-// read ADC DR and set LED accordingly
-uputs("ADC1 Int", USART1);
-ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);
+	// read ADC DR and set LED accordingly
+	//uputs("ADC1 Int", USART1);
+	ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);
+	if((ADC1->DR > dso_scope.trig_lvl_adc && 
+			dso_scope.prev_cal_samp < dso_scope.trig_lvl_adc )) {
+		/* Disable ADC Interrupts - the sampling can start now */
+		ADC_ITConfig(ADC1, ADC_IT_EOC , DISABLE);
+		/* Enable DMA on channel 1 (ADC1) */
+		DMA_Cmd(DMA1_Channel1, ENABLE);
+		/* Set counter to sampling mode */
+		TIM_SetCounter(TIM3, timebase_pres[dso_scope.tb_i]);
+	}
+	dso_scope.prev_cal_samp = ADC1->DR;
+		
 }
 
 /******************* (C) COPYRIGHT 2010 STMicroelectronics *****END OF FILE****/

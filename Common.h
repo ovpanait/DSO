@@ -1,31 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////
-//
-// 	Filename:	Common.h
-//	Version:		
-//	Data:		
-//
-//	Author:		Liu, Zemin
-//	Company:	JYE Tech
-//
-//-----------------------------------------------------------------------------
-//
-// 	Target: 		STM32F103C8 
-// 	Tool chain: 	CodeSourcery G++
-//
-//
-//-----------------------------------------------------------------------------
-//	Required files:
-//
-//-----------------------------------------------------------------------------
-//	Notes:
-//
-//
-//-----------------------------------------------------------------------------
-//	Revision History:
-//
-///////////////////////////////////////////////////////////////////////////////
-//
-
 #ifndef Common_h
 
 #define	Common_h
@@ -35,11 +7,7 @@ typedef	signed char		S8;
 typedef	unsigned short int	U16;
 typedef	signed short int	S16;
 typedef	unsigned long		U32;
-typedef	signed long		S32;
-
-typedef	void	(*FuncPointer)(U8); 
-typedef	void	(*CmdFuncPointer)(void); 
-typedef	void	(*StateAction)(void); 
+typedef	signed long		S32; 
 
 // -- Control debug code generation
 //#define	_Debug_

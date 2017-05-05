@@ -2,7 +2,7 @@
 
 #define	Board_h
 
-#include	"Common.h"
+#include"Common.h"
 
 #include "stm32f10x.h"
 //#include "stm32f10x_conf.h"
@@ -10,25 +10,25 @@
 // TFT control ports
 
 #define	TFT_nRESET_Port			GPIOB	
-#define	TFT_nRESET_Bit				11		
-#define	TFT_RS_Port					GPIOC
-#define	TFT_RS_Bit					14	
-#define	TFT_nCS_Port				GPIOC
-#define	TFT_nCS_Bit					13	
-#define	TFT_nWR_Port				GPIOC
-#define	TFT_nWR_Bit				15	
-#define	TFT_nRD_Port				GPIOB
-#define	TFT_nRD_Bit					10	
+#define	TFT_nRESET_Bit			11		
+#define	TFT_RS_Port			GPIOC
+#define	TFT_RS_Bit			14	
+#define	TFT_nCS_Port			GPIOC
+#define	TFT_nCS_Bit			13	
+#define	TFT_nWR_Port			GPIOC
+#define	TFT_nWR_Bit			15	
+#define	TFT_nRD_Port			GPIOB
+#define	TFT_nRD_Bit			10	
 
-#define	TFT_Port					(GPIOB->ODR)
+#define	TFT_Port			(GPIOB->ODR)
 
-#define	LED_Base					GPIOA
-#define	LED_Port					(GPIOA->ODR)
-#define	LED_Bit						15
+#define	LED_Base			GPIOA
+#define	LED_Port			(GPIOA->ODR)
+#define	LED_Bit				15
 
 // Pushbuttons
-#define	PB_Port						(GPIOB->IDR)
-#define	PB_Bits						0xF000
+#define	PB_Port				(GPIOB->IDR)
+#define	PB_Bits				0xF000
 
 
 // ======== STM32 Register Constants =====================

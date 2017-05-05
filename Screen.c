@@ -356,14 +356,14 @@ void FillRect(S16 x, S16 y, S16 xsize, S16 ysize, U16 color)
 
 // Put at (x, y) a 15X16 character [ch] with [f_color] and [b_color]
 //
-void	PutcGenic(U16 x, U16 y, U8 ch, U16 fgcolor, U16 bgcolor, FONT *font)
+void PutcGenic(U16 x, U16 y, U8 ch, U16 fgcolor, U16 bgcolor, FONT *font)
 {
  U8 tmp, tmp2;
  U16 tmp1, tmp3;
  U8 *ptmp;
 
  // Font address
- ptmp = (U8 *)font->Array 	+ (ch - font->IndexOfs) * ((font->Xsize + 7)/8) * font->Ysize;
+ ptmp = (U8 *)font->Array + (ch - font->IndexOfs) * ((font->Xsize + 7)/8) * font->Ysize;
 
  SetWindow(x, font->Xsize, y, font->Ysize);
 
@@ -402,7 +402,7 @@ void	PutcGenic(U16 x, U16 y, U8 ch, U16 fgcolor, U16 bgcolor, FONT *font)
  SetToHigh(TFT_nCS_Port, (1 << TFT_nCS_Bit)); 
 }
 
-void	PutsGenic(U16 x, U16 y, U8 *str, U16 fgcolor, U16 bgcolor, FONT *font)
+void PutsGenic(U16 x, U16 y, U8 *str, U16 fgcolor, U16 bgcolor, FONT *font)
 {
  U8 tmp;
  

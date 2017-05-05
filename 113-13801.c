@@ -5,7 +5,6 @@
 #include "Common.h"
 #include "Board.h"
 #include "Screen.h"
-#include "Command.h"
 #include "Eeprom.h"
 #include "scope.h"
 #include "stdlib.h"
@@ -17,9 +16,9 @@ int main (void)
 {
  	U16 tmp1, tmp2;
  
-	 Clock_Init();
+	Clock_Init();
 	 
-	 Port_Init();
+	Port_Init();
 
 	/* Unlock the Flash Program Erase controller */
 	FLASH_Unlock();
@@ -52,9 +51,10 @@ int main (void)
 	char *test = "Done";
 	uputs(test, USART1);
 
-	start_sampling();
+	sampling_config();
 	uputs("Done initializing.\n", USART1);
-
+	sampling_enable();
+	
 	while(1) {
 		while(!dso_scope.done_sampling)
 			;
@@ -63,10 +63,10 @@ int main (void)
 		uputs(buf, USART1);
 		*/
 		/* Reset flags and display waveform */
-		dso_scope.done_sampling = 0;
 		waveform_display();
+		//read_btns();
 		Delay(65000);
-		dso_scope.start_sampling = 1;
+		sampling_enable();
 		
 	}
 	
