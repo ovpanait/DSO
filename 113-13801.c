@@ -14,8 +14,6 @@ extern __IO struct scope dso_scope;
 
 int main (void)
 {
- 	U16 tmp1, tmp2;
- 
 	Clock_Init();
 	 
 	Port_Init();
@@ -26,35 +24,26 @@ int main (void)
 	/* EEPROM Init */
 	EE_Init();
 
+	/* Init display */
 	TFT_Init_Ili9341();
 	 
 	/* Init USART1 */
 	USART1_Init();
-
-	/* TEST */
-	U8 buf[16];
-	U8 test_nr = 0;
-	/*while(1) {
-		ClrScreen();
-		itoa(test_nr++, buf, 10);
-		PutsGenic(24, 180, buf, clWhite, clBlack, &ASC8X16);
-		for(int i = 0; i < 10; i++)
-			Delay(21500);
-	}*/
 	
 	ClrScreen();
-	//display_grid();
 
+	/* Initialization */
 	waveform_init();
 	scope_init();
 	
-	char *test = "Done";
+	char *test = "Initialization done.\n";
 	uputs(test, USART1);
 
 	sampling_config();
-	uputs("Done initializing.\n", USART1);
+	uputs("Configured sampling\n", USART1);
 	sampling_enable();
 	
+	/* Main loop */
 	while(1) {
 		while(!dso_scope.done_sampling)
 			;
@@ -62,13 +51,15 @@ int main (void)
 		itoa(ADC_GetConversionValue(ADC1), buf, 10);
 		uputs(buf, USART1);
 		*/
-		/* Reset flags and display waveform */
+
+		/* Display waveform */
 		waveform_display();
-		//read_btns();
+		/* Read buttons */
+		read_btns();
+		/* Delay to minimize flickering */
 		Delay(65000);
-		sampling_enable();
-		
+		/* Start looking for trigger */
+		sampling_enable();	
 	}
-	
 }	
 

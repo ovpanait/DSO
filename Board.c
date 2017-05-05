@@ -349,7 +349,7 @@ void Port_Init(void)
  
 }
 
-void	USART1_Init(void)
+void USART1_Init(void)
 {
  USART_InitTypeDef USART_InitStructure;
  

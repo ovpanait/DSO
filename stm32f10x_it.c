@@ -28,7 +28,7 @@
 #include "scope.h"
 
 extern __IO struct scope dso_scope;
-extern __IO U16 timebase_pres[];
+extern U16 timebase_pres[];
 
 /** @addtogroup STM32F10x_StdPeriph_Examples
   * @{
@@ -188,10 +188,6 @@ void DMA1_Channel1_IRQHandler(void)
 	dso_scope.done_sampling = 1;
 	/* Reset calibration sample */
 	dso_scope.prev_cal_samp = ADC_MAX;
-
-	/* Increase timer frequency */
-	TIM_SetCounter(TIM3, 40);
-	
   }
 }
 
@@ -220,12 +216,27 @@ void ADC1_2_IRQHandler(void)
 	ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);
 	if((ADC1->DR > dso_scope.trig_lvl_adc && 
 			dso_scope.prev_cal_samp < dso_scope.trig_lvl_adc )) {
-		/* Disable ADC Interrupts - the sampling can start now */
-		ADC_ITConfig(ADC1, ADC_IT_EOC , DISABLE);
-		/* Enable DMA on channel 1 (ADC1) */
-		DMA_Cmd(DMA1_Channel1, ENABLE);
-		/* Set counter to sampling mode */
-		TIM_SetCounter(TIM3, timebase_pres[dso_scope.tb_i]);
+	/* Disable ADC Interrupts - the sampling can start now */
+	ADC_ITConfig(ADC1, ADC_IT_EOC , DISABLE);
+		
+	/* Reload timer with proper parameters */
+	TIM_Cmd(TIM3, DISABLE);
+	//TIM_SetCounter(TIM3, timebase_pres[dso_scope.tb_i]);
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+
+	/* Time base configuration */
+	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+	TIM_TimeBaseStructure.TIM_Period = timebase_pres[dso_scope.tb_i] - 1;
+	TIM_TimeBaseStructure.TIM_Prescaler = 0;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
+
+	/* TIM3 TRGO selection */
+	TIM_SelectOutputTrigger(TIM3, TIM_TRGOSource_Update); // ADC_ExternalTrigConv_T3_TRGO
+	TIM_Cmd(TIM3, ENABLE);
+
+	/* Enable DMA on channel 1 (ADC1) */
+	DMA_Cmd(DMA1_Channel1, ENABLE);
 	}
 	dso_scope.prev_cal_samp = ADC1->DR;
 		

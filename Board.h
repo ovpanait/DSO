@@ -511,19 +511,19 @@
 #define  SysTick_NOREF                	31	// ((uint32_t)0x80000000)        /*!< The reference clock is not provided */
 
 // GPIO port configuration constants
-#define	GPIO_Mode_In				0x00
-#define	GPIO_Mode_Out10M			0x01
+#define	GPIO_Mode_In			0x00
+#define	GPIO_Mode_Out10M		0x01
 #define	GPIO_Mode_Out2M			0x02
-#define	GPIO_Mode_Out50M			0x03
+#define	GPIO_Mode_Out50M		0x03
 
 #define	GPIO_CNF_GP_PP			0x00
 #define	GPIO_CNF_GP_OD			0x04
 #define	GPIO_CNF_AF_PP			0x08
 #define	GPIO_CNF_AF_OD			0x0C
-#define	GPIO_CNF_AnalogIn			0x00
-#define	GPIO_CNF_Floating			0x04
-#define	GPIO_CNF_IPD				0x08
-#define	GPIO_CNF_IPU				0x08
+#define	GPIO_CNF_AnalogIn		0x00
+#define	GPIO_CNF_Floating		0x04
+#define	GPIO_CNF_IPD			0x08
+#define	GPIO_CNF_IPU			0x08
 
 /******************  Bit definition for FSMC_BCR registers  *******************/
 #define  CBURSTRW           	16        /*!<Write burst enable */

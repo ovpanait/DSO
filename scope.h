@@ -15,7 +15,15 @@
 #define ADC_VAL_DEL		((MV_PIXEL * ADC_TOTAL) / MAX_VAL_MV)	/* ADC value delimiter */
 #define GET_SAMPLE(x)		( (x) / ADC_VAL_DEL) 
 
-#define PLUS_BUTTON_PIN		14
+/* Debouncing parameters */
+#define DEBOUNCE_TOTAL		250
+#define DEBOUNCE_LIM		100
+
+/* Buttons */
+#define PLUS_BTN_BIT		0
+#define MINUS_BTN_BIT		1
+
+#define TIMEBASE_NR		8
 
 struct sample {
 	U16 val;
@@ -27,7 +35,6 @@ struct waveform {
 	__IO U16 samples[SAMPLES_NR];
 	U8 midpoint;
 	U16 frequency;
-	U16 peak_to_peak;
 	U16 max;
 	U16 min;
 	U16 pp_v;
@@ -45,8 +52,11 @@ struct scope {
 	
 	/* ADC Trigger level */
 	__IO U16 trig_lvl_adc;
+	U16 prev_cal_samp; 		/* Previous sample */
+
+	/* Debouncing flags */
+	U8 debounced;
 	
-	U16 prev_cal_samp;
 };
 
 void waveform_display(void);

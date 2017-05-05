@@ -4,6 +4,7 @@
 #include "Screen.h"
 #include "Board.h"
 #include "stdlib.h"
+#include "Common.h"
 
 struct scope dso_scope;
 struct waveform wave;
@@ -15,16 +16,15 @@ void scope_init(void)
 {
 	dso_scope.done_sampling = 0;
 	dso_scope.start_sampling = 1;
-	dso_scope.tb_i = 5;
+	dso_scope.tb_i = 4;
 	dso_scope.timebase_flag = 1;
-
-	/* Interrupt flags */
-	dso_scope.plus_btn_iflag = 0;
-	dso_scope.minus_btn_iflag = 0;
 
 	/* Trig lvl */
 	dso_scope.trig_lvl_adc = 2047;
 	dso_scope.prev_cal_samp = ADC_MAX;
+	
+	/* Buttons */
+	dso_scope.debounced = 0;
 }
 
 void waveform_init(void) 
@@ -116,10 +116,27 @@ void waveform_display(void)
 }*/
 
 /* Read buttons state */
-void read_btns(void) {
-	if(GPIO_ReadInputDataBit(GPIOB, PLUS_BUTTON_PIN) == 0) {
-		dso_scope.tb_i++;
+U8 check_btn(GPIO_TypeDef* GPIOx, U16 GPIO_pin, U8 state){
+	if(GPIO_ReadInputDataBit(GPIOx, GPIO_pin) == state) {
+		U8 cnt = 0;
+		for(U8 i = 0; i < DEBOUNCE_TOTAL; ++i)
+			if(GPIO_ReadInputDataBit(GPIOx, GPIO_pin) == state)
+				++cnt;
+		if(cnt >= DEBOUNCE_LIM)
+			return 1;
 	}
+	return 0;
+}
+
+void read_btns(void) {
+	if(BitTest(dso_scope.debounced, (1 << PLUS_BTN_BIT)) && !check_btn(GPIOB, GPIO_Pin_14, RESET)) 
+		BitClr(dso_scope.debounced, (1 << PLUS_BTN_BIT));
+	else if(!BitTest(dso_scope.debounced, (1 << PLUS_BTN_BIT)) && check_btn(GPIOB, GPIO_Pin_14, RESET)){
+		BitSet(dso_scope.debounced, (1 << PLUS_BTN_BIT));
+		dso_scope.tb_i = (dso_scope.tb_i + 1) % TIMEBASE_NR;
+		dso_scope.timebase_flag = 1;
+	}
+	
 }
 
 /*
@@ -291,6 +308,9 @@ void sampling_config(void) {
 
 void sampling_enable(void) {
 	dso_scope.done_sampling = 0;
+	dso_scope.prev_cal_samp = ADC_MAX;	
+	/* Increase timer frequency */
+	TIM_SetCounter(TIM3, 40);
 	/* Enable ADC timer */
 	TIM_Cmd(TIM3, ENABLE);
 	/* Enable ADC interrupts */
