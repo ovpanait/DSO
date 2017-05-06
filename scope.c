@@ -79,17 +79,15 @@ void waveform_display(void)
 		prev_ypos = current_ypos;
 	}
 	
-	/*U8 buf[16];
-	itoa(wave.min - wave.max, buf, 16);
-	uputs(buf, USART1);
-	uputs("\n", USART1);*/
+	/* Update timebase */
 	if(dso_scope.timebase_flag) {
+		clr_blk(WD_OFFSETX, 2, 6 * 8, 12);
 		if(timebase_vals[dso_scope.tb_i] >= 1000){
+			PutsGenic(WD_OFFSETX + 8, 2, (U8 *)" ms", clGreen, clBlack, &ASC8X16);
 			PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(timebase_vals[dso_scope.tb_i] / 1000, buf, 10), clGreen, clBlack, &ASC8X16);
-			PutsGenic(WD_OFFSETX + 22, 2, (U8 *)" ms", clGreen, clBlack, &ASC8X16);
 		} else {
-			PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(timebase_vals[dso_scope.tb_i], buf, 10), clGreen, clBlack, &ASC8X16);
-			PutsGenic(WD_OFFSETX + 22, 2, (U8 *)" us", clGreen, clBlack, &ASC8X16);
+			PutsGenic(WD_OFFSETX + 17, 2, (U8 *)" us", clGreen, clBlack, &ASC8X16);
+			PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(timebase_vals[dso_scope.tb_i], buf, 10), clGreen, clBlack, &ASC8X16);	
 		}
 		dso_scope.timebase_flag = 0;
 	}

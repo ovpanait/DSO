@@ -30,7 +30,7 @@ int main (void)
 	/* Init USART1 */
 	USART1_Init();
 	
-	ClrScreen();
+	clr_screen();
 
 	/* Initialization */
 	waveform_init();

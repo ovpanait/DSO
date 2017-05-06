@@ -108,18 +108,11 @@ typedef struct {
 /* Background */
 #define BG_CL				clBlack
 
-// ===========================================================
-//	Declarations of external variables
-// ===========================================================
-//
 extern	FONT ASC8X16;
 
-// ===========================================================
-//	Function Prototype Declarations
-// ===========================================================
-//
 void	ClrScreen(void);
-void	ClrBlk(S16 x, S16 y, S16 size);
+void	clr_blk(S16 x, S16 y, S16 sizex, S16 sizey);
+void 	clr_square_blk(S16 x, S16 y, S16 size);
 void	SetWindow(U16 x, U16 xsize, U16 y, U16 ysize);
 void 	FillRect(S16 x, S16 y, S16 xsize, S16 ysize, U16 color);
 void	PutcGenic(U16 x, U16 y, U8 ch, U16 fgcolor, U16 bgcolor, FONT *font);

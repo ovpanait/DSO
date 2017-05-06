@@ -286,17 +286,21 @@ FONT ASC8X16 = {
 //
 // ==========================================
 // Clear screen
-void	ClrScreen(void)
+void clr_screen(void)
 {
  	FillRect(ScreenX0, ScreenY0, ScreenXsize, ScreenYsize, BG_CL);
 
 }
-void ClrBlock(S16 x, S16 y, S16 size)
+void clr_blk(S16 x, S16 y, S16 sizex, S16 sizey)
 {
-	FillRect(x, y, size, size, BG_CL);
+	FillRect(x, y, sizex, sizey, BG_CL);
 }
 	
-void	SetWindow(U16 x, U16 xsize, U16 y, U16 ysize)
+void clr_square_blk(S16 x, S16 y, S16 size){
+	FillRect(x, y, size, size, BG_CL);
+}
+
+void SetWindow(U16 x, U16 xsize, U16 y, U16 ysize)
 {
  write_comm(0x2A);
 
