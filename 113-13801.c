@@ -11,9 +11,12 @@
 
 extern __IO struct waveform wave;
 extern __IO struct scope dso_scope;
+extern __IO U16 timebase_vals[];
 
 int main (void)
 {
+	U8 btns_flags;
+
 	Clock_Init();
 	 
 	Port_Init();
@@ -41,7 +44,9 @@ int main (void)
 
 	sampling_config();
 	uputs("Configured sampling\n", USART1);
-	sampling_enable();
+	
+	timebase_display(timebase_vals[dso_scope.tb_i]);
+ 	dso_scope.done_sampling = 1;
 	
 	/* Main loop */
 	while(1) {
@@ -52,15 +57,18 @@ int main (void)
 		uputs(buf, USART1);
 		*/
 
-		/* Display waveform */
-		waveform_display();
 		/* Read buttons */
-		read_btns();
-		/* Delay to minimize flickering */
+		btns_flags = read_btns();
+		if(BitTest(btns_flags, (1 << TB_FLAG_BIT)))
+			dso_scope.tb_i = (dso_scope.tb_i + 1) % TIMEBASE_NR;
+		
+		fill_display_buf();
+		sampling_enable();
+
+		waveform_display();
+		timebase_display(timebase_vals[dso_scope.tb_i]);
 		Delay(65000);
-		Delay(30000);
-		/* Start looking for trigger */
-		sampling_enable();	
+		dso_scope.done_displaying = 1;
 	}
 }	
 

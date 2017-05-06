@@ -28,6 +28,8 @@
 #include "scope.h"
 
 extern __IO struct scope dso_scope;
+extern __IO struct waveform wave;
+extern __IO TIM_TimeBaseInitTypeDef TIM3_struct;
 extern U16 timebase_pres[];
 
 /** @addtogroup STM32F10x_StdPeriph_Examples
@@ -181,11 +183,33 @@ void DMA1_Channel1_IRQHandler(void)
 	if(DMA_GetITStatus(DMA_IT_TC)) {
 	/* Clear DMA Transfer Complete interrupt pending bit */
 	DMA_ClearITPendingBit(DMA_IT_TC);
+
 	/* Disable DMA Channel while the waveform is displayed */
 	DMA_Cmd(DMA1_Channel1, DISABLE);
 	TIM_Cmd(TIM3, DISABLE);
-	/* Start displaying the waveform */
-	dso_scope.done_sampling = 1;
+
+	for(U16 i = 0; i < SAMPLES_NR; ++i)
+		if(dso_scope.avg_flag)
+			wave.avg_buf[i] = wave.tmp_buf[i];
+		else 
+			wave.avg_buf[i] = (wave.avg_buf[i] + wave.tmp_buf[i]) / 2;
+	
+	if(dso_scope.avg_flag)
+		dso_scope.avg_flag = 0;
+
+	if(dso_scope.done_displaying || !(--dso_scope.avg_total))
+		dso_scope.done_sampling = 1;
+	else {
+		/* Start searching for a new trigger */
+		TIM3_struct.TIM_Period = 50;
+		TIM_TimeBaseInit(TIM3, &TIM3_struct);
+		TIM_SelectOutputTrigger(TIM3, TIM_TRGOSource_Update); // ADC_ExternalTrigConv_T3_TRGO
+		TIM_Cmd(TIM3, ENABLE);
+		
+		/* ADC Interrupts */
+		ADC_ITConfig(ADC1, ADC_IT_EOC , ENABLE);
+	}
+
 	/* Reset calibration sample */
 	dso_scope.prev_cal_samp = ADC_MAX;
   }
@@ -211,8 +235,6 @@ void TIM3_IRQHandler(void)
 
 void ADC1_2_IRQHandler(void)
 {
-	// read ADC DR and set LED accordingly
-	//uputs("ADC1 Int", USART1);
 	ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);
 	if((ADC1->DR > (dso_scope.trig_lvl_adc + NOISE_MARGIN) && 
 			dso_scope.prev_cal_samp < dso_scope.trig_lvl_adc )) {
@@ -221,19 +243,13 @@ void ADC1_2_IRQHandler(void)
 		
 	/* Reload timer with proper parameters */
 	TIM_Cmd(TIM3, DISABLE);
-	//TIM_SetCounter(TIM3, timebase_pres[dso_scope.tb_i]);
-	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-
-	/* Time base configuration */
-	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
-	TIM_TimeBaseStructure.TIM_Period = timebase_pres[dso_scope.tb_i] - 1;
-	TIM_TimeBaseStructure.TIM_Prescaler = 0;
-	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
-
-	/* TIM3 TRGO selection */
+	TIM3_struct.TIM_Period = timebase_pres[dso_scope.tb_i] - 1;
+	TIM_TimeBaseInit(TIM3, &TIM3_struct);
 	TIM_SelectOutputTrigger(TIM3, TIM_TRGOSource_Update); // ADC_ExternalTrigConv_T3_TRGO
 	TIM_Cmd(TIM3, ENABLE);
+	
+	/* Start averaging */
+	dso_scope.avg_flag = 1;
 
 	/* Enable DMA on channel 1 (ADC1) */
 	DMA_Cmd(DMA1_Channel1, ENABLE);

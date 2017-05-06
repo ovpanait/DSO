@@ -25,6 +25,8 @@
 #define PLUS_BTN_BIT		0
 #define MINUS_BTN_BIT		1
 
+#define TB_FLAG_BIT		0
+
 #define TIMEBASE_NR		8
 
 struct sample {
@@ -34,7 +36,10 @@ struct sample {
 };
 
 struct waveform {
-	__IO U16 samples[SAMPLES_NR];
+	__IO U16 tmp_buf[SAMPLES_NR];
+	__IO U16 avg_buf[SAMPLES_NR];
+	__IO U16 display_buf[SAMPLES_NR];
+	
 	U8 midpoint;
 	U16 frequency;
 	U16 max;
@@ -44,25 +49,25 @@ struct waveform {
 
 struct scope {
 	__IO U16 tb_i;
-	U16 timebase_flag;
 	__IO U8 done_sampling;
-	__IO U8 start_sampling;
+	__IO U8 done_displaying;
 
-	/* External interrupt flags */
-	__IO U8 plus_btn_iflag;
-	__IO U8 minus_btn_iflag;
-	
+	/* Averaging */
+	__IO U8 avg_flag;
+	__IO U8 avg_total;
+
 	/* ADC Trigger level */
 	__IO U16 trig_lvl_adc;
 	U16 prev_cal_samp; 		/* Previous sample */
 
-	/* Debouncing flags */
+	/* Flags */
 	U8 debounced;
-	
 };
 
 void waveform_display(void);
 void waveform_init(void);
+void timebase_display(U16 timebase);
+
 void scope_init(void);
 void ADCs_Init(void);
 void DMA_Configuration(void);
@@ -72,6 +77,7 @@ void NVIC_Configuration(void);
 
 void sampling_config(void); /* Configure ADC1, DMA, TIM3 */
 void sampling_enable(void);
+void fill_display_buf(void);
 
-void read_btns(void);
+U8 read_btns(void);
 #endif
