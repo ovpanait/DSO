@@ -15,6 +15,8 @@
 #define ADC_VAL_DEL		((MV_PIXEL * ADC_TOTAL) / MAX_VAL_MV)	/* ADC value delimiter */
 #define GET_SAMPLE(x)		( (x) / ADC_VAL_DEL) 
 
+#define NOISE_MARGIN		40	/* ~40mv */
+
 /* Debouncing parameters */
 #define DEBOUNCE_TOTAL		250
 #define DEBOUNCE_LIM		100

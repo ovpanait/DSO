@@ -20,7 +20,7 @@ void scope_init(void)
 	dso_scope.timebase_flag = 1;
 
 	/* Trig lvl */
-	dso_scope.trig_lvl_adc = 2047;
+	dso_scope.trig_lvl_adc = 1000;
 	dso_scope.prev_cal_samp = ADC_MAX;
 	
 	/* Buttons */
@@ -52,7 +52,7 @@ void waveform_display(void)
 
 	/* Display first sample */
 	prev_ypos = GET_SAMPLE(wave.samples[i++]);
-	FillRect(xpos++, midpoint - prev_ypos, 2, 2, WF_CL);
+	FillRect(xpos++, midpoint - prev_ypos, 1, 1, WF_CL);
 
 	/* Max and min */
 	wave.max = midpoint - prev_ypos;
@@ -71,17 +71,16 @@ void waveform_display(void)
 		/* Display sample accordingly */
 		diff = current_ypos - prev_ypos;
 		if(diff > 1 && diff <= WD_HEIGHT / 2 )
-			FillRect(xpos, midpoint - current_ypos, 2, 2 + diff, WF_CL);
+			FillRect(xpos, midpoint - current_ypos, 1, 1 + diff, WF_CL);
 		else if((diff < -1 && diff >= -(WD_HEIGHT / 2)))
-			FillRect(xpos, midpoint - prev_ypos, 2, 2 - diff, WF_CL);
+			FillRect(xpos, midpoint - prev_ypos, 1, 1 - diff, WF_CL);
 		else
-			FillRect(xpos, midpoint - current_ypos, 2, 2, WF_CL);
+			FillRect(xpos, midpoint - current_ypos, 1, 1, WF_CL);
 		prev_ypos = current_ypos;
 	}
-	
 	/* Update timebase */
 	if(dso_scope.timebase_flag) {
-		clr_blk(WD_OFFSETX, 2, 6 * 8, 12);
+		clr_blk(WD_OFFSETX, 2, 5 * 8, 12);
 		if(timebase_vals[dso_scope.tb_i] >= 1000){
 			PutsGenic(WD_OFFSETX + 8, 2, (U8 *)" ms", clGreen, clBlack, &ASC8X16);
 			PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(timebase_vals[dso_scope.tb_i] / 1000, buf, 10), clGreen, clBlack, &ASC8X16);
@@ -91,6 +90,8 @@ void waveform_display(void)
 		}
 		dso_scope.timebase_flag = 0;
 	}
+
+	/* Display max and peak-to-peak voltage */
 }
 	
 /* *
@@ -307,9 +308,18 @@ void sampling_config(void) {
 void sampling_enable(void) {
 	dso_scope.done_sampling = 0;
 	dso_scope.prev_cal_samp = ADC_MAX;	
-	/* Increase timer frequency */
-	TIM_SetCounter(TIM3, 40);
-	/* Enable ADC timer */
+	//TIM_SetCounter(TIM3, timebase_pres[dso_scope.tb_i]);
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+
+	/* Time base configuration */
+	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+	TIM_TimeBaseStructure.TIM_Period = 50;
+	TIM_TimeBaseStructure.TIM_Prescaler = 0;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
+
+	/* TIM3 TRGO selection */
+	TIM_SelectOutputTrigger(TIM3, TIM_TRGOSource_Update); // ADC_ExternalTrigConv_T3_TRGO
 	TIM_Cmd(TIM3, ENABLE);
 	/* Enable ADC interrupts */
 	ADC_ITConfig(ADC1, ADC_IT_EOC , ENABLE);

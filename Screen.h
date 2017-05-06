@@ -102,6 +102,12 @@ typedef struct {
 #define GRID_DIST			25
 #define GRID_CL				clWhite
 
+/* Info bar */
+#define TIMEBASE_SIZE			6 * 8
+#define MAXV_SIZE			4 * 8
+#define PPV_SIZE			4 * 8
+#define FREQ_SIZE			10 * 8
+
 /* Waveform */
 #define WF_CL				clYellow
 
@@ -110,7 +116,7 @@ typedef struct {
 
 extern	FONT ASC8X16;
 
-void	ClrScreen(void);
+void	clr_screen(void);
 void	clr_blk(S16 x, S16 y, S16 sizex, S16 sizey);
 void 	clr_square_blk(S16 x, S16 y, S16 size);
 void	SetWindow(U16 x, U16 xsize, U16 y, U16 ysize);

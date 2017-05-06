@@ -58,6 +58,7 @@ int main (void)
 		read_btns();
 		/* Delay to minimize flickering */
 		Delay(65000);
+		Delay(30000);
 		/* Start looking for trigger */
 		sampling_enable();	
 	}

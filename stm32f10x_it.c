@@ -214,7 +214,7 @@ void ADC1_2_IRQHandler(void)
 	// read ADC DR and set LED accordingly
 	//uputs("ADC1 Int", USART1);
 	ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);
-	if((ADC1->DR > dso_scope.trig_lvl_adc && 
+	if((ADC1->DR > (dso_scope.trig_lvl_adc + NOISE_MARGIN) && 
 			dso_scope.prev_cal_samp < dso_scope.trig_lvl_adc )) {
 	/* Disable ADC Interrupts - the sampling can start now */
 	ADC_ITConfig(ADC1, ADC_IT_EOC , DISABLE);
