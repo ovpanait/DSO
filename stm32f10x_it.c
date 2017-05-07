@@ -188,12 +188,27 @@ void DMA1_Channel1_IRQHandler(void)
 	DMA_Cmd(DMA1_Channel1, DISABLE);
 	TIM_Cmd(TIM3, DISABLE);
 
-	for(U16 i = 0; i < SAMPLES_NR; ++i)
-		if(dso_scope.avg_flag)
-			wave.avg_buf[i] = wave.tmp_buf[i];
-		else 
-			wave.avg_buf[i] = (wave.avg_buf[i] + wave.tmp_buf[i]) / 2;
-	
+	if(dso_scope.timebase == 20) {
+		for(U16 i = 0; i < SAMPLES_NR; i += 2)
+			if(dso_scope.avg_flag)
+				wave.avg_buf[i] = wave.avg_buf[i + 1] = wave.tmp_buf[i / 2];
+			else 
+				wave.avg_buf[i] = wave.avg_buf[i + 1] = (wave.avg_buf[i] + wave.tmp_buf[i / 2]) / 2;
+	} else if(dso_scope.timebase == 10 ) {
+		for(U16 i = 0; i < SAMPLES_NR; i += 4)
+			if(dso_scope.avg_flag)
+				wave.avg_buf[i] = wave.avg_buf[i + 1] = wave.avg_buf[i+2] = wave.avg_buf[i+3] = wave.tmp_buf[i / 4];
+			else 
+				wave.avg_buf[i] = wave.avg_buf[i + 1] = wave.avg_buf[i+2] = wave.avg_buf[i+3] = (wave.avg_buf[i] + wave.tmp_buf[i / 4]) / 2;
+	}
+	else {
+		for(U16 i = 0; i < SAMPLES_NR; ++i)
+			if(dso_scope.avg_flag)
+				wave.avg_buf[i] = wave.tmp_buf[i];
+			else 
+				wave.avg_buf[i] = (wave.avg_buf[i] + wave.tmp_buf[i]) / 2;
+	}
+
 	if(dso_scope.avg_flag)
 		dso_scope.avg_flag = 0;
 

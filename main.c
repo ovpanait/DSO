@@ -16,6 +16,7 @@ extern __IO U16 timebase_vals[];
 int main (void)
 {
 	U8 btns_flags;
+	U16 timebase;
 
 	Clock_Init();
 	 
@@ -59,14 +60,17 @@ int main (void)
 
 		/* Read buttons */
 		btns_flags = read_btns();
-		if(BitTest(btns_flags, (1 << TB_FLAG_BIT)))
+		if(BitTest(btns_flags, (1 << TB_FLAG_BIT))) {
 			dso_scope.tb_i = (dso_scope.tb_i + 1) % TIMEBASE_NR;
+			dso_scope.timebase = timebase = timebase_vals[dso_scope.tb_i];
+		} else 
+			timebase = 0;
 		
 		fill_display_buf();
 		sampling_enable();
 
 		waveform_display();
-		timebase_display(timebase_vals[dso_scope.tb_i]);
+		timebase_display(timebase);
 		Delay(65000);
 		dso_scope.done_displaying = 1;
 	}

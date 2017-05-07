@@ -10,15 +10,18 @@ struct scope dso_scope;
 struct waveform wave;
 
 __IO U16 timebase_vals[] = { 10, 20, 50, 100, 200, 500, 1000, 5000 };
-__IO U16 timebase_pres[] = { 28, 57, 144, 288, 576, 1440, 2880, 7220 }; /* Timer prescaler 72Mhz */
+__IO U16 timebase_pres[] = { 116, 115, 144, 288, 576, 1440, 2880, 7220 }; /* Timer prescaler 72Mhz */
 
+/* Global peripheral initializers */
 __IO TIM_TimeBaseInitTypeDef TIM3_struct;
+__IO DMA_InitTypeDef DMA_struct;
 
 void scope_init(void)
 {
 	dso_scope.done_sampling = 0;
 	dso_scope.done_displaying = 0;
 	dso_scope.tb_i = 4;
+	dso_scope.timebase = timebase_vals[dso_scope.tb_i];
 	
 	/* Averaging function */
 	dso_scope.avg_flag = 1;
@@ -184,21 +187,19 @@ void ADCs_Init(void)
 
 void DMA_Configuration(void)
 {
-	  DMA_InitTypeDef DMA_InitStructure;
-
 	  DMA_DeInit(DMA1_Channel1);
-	  DMA_InitStructure.DMA_PeripheralBaseAddr = ADC1_DR_Address;
-	  DMA_InitStructure.DMA_MemoryBaseAddr = wave.tmp_buf;
-	  DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
-	  DMA_InitStructure.DMA_BufferSize = SAMPLES_NR;
-	  DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-	  DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-	  DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
-	  DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
-	  DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
-	  DMA_InitStructure.DMA_Priority = DMA_Priority_High;
-	  DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
-	  DMA_Init(DMA1_Channel1, &DMA_InitStructure);  
+	  DMA_struct.DMA_PeripheralBaseAddr = ADC1_DR_Address;
+	  DMA_struct.DMA_MemoryBaseAddr = wave.tmp_buf;
+	  DMA_struct.DMA_DIR = DMA_DIR_PeripheralSRC;
+	  DMA_struct.DMA_BufferSize = SAMPLES_NR;
+	  DMA_struct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+	  DMA_struct.DMA_MemoryInc = DMA_MemoryInc_Enable;
+	  DMA_struct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
+	  DMA_struct.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
+	  DMA_struct.DMA_Mode = DMA_Mode_Circular;
+	  DMA_struct.DMA_Priority = DMA_Priority_High;
+	  DMA_struct.DMA_M2M = DMA_M2M_Disable;
+	  DMA_Init(DMA1_Channel1, &DMA_struct);  
 	 
 	  /* Enable DMA Stream Transfer Complete interrupt */
 	  DMA_ITConfig(DMA1_Channel1, DMA_IT_TC, ENABLE);
@@ -307,9 +308,23 @@ void sampling_enable(void)
 {
 	dso_scope.done_sampling = 0;
 	dso_scope.done_displaying = 0;
-	dso_scope.avg_total = 16;
+	dso_scope.avg_total = 32;
 	dso_scope.prev_cal_samp = ADC_MAX;	
 	
+	/* 10us and 20us special handling */
+	/* Sample only half the total amount */
+	if(dso_scope.timebase == 20) {
+		DMA_struct.DMA_BufferSize = SAMPLES_NR / 2;
+		DMA_Init(DMA1_Channel1, &DMA_struct);
+	} else if(dso_scope.timebase == 10) {
+		DMA_struct.DMA_BufferSize = SAMPLES_NR / 4;
+		DMA_Init(DMA1_Channel1, &DMA_struct);
+	}
+	else {
+		DMA_struct.DMA_BufferSize = SAMPLES_NR;
+		DMA_Init(DMA1_Channel1, &DMA_struct);
+	}
+
 	TIM3_struct.TIM_Period = 50;
 	TIM_TimeBaseInit(TIM3, &TIM3_struct);
 	/* TIM3 TRGO selection */

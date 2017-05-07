@@ -48,7 +48,11 @@ struct waveform {
 };
 
 struct scope {
-	__IO U16 tb_i;
+	/* Timebase */
+	__IO U8 tb_i;
+	__IO U16 timebase;
+
+	/* Interrupt flags */
 	__IO U8 done_sampling;
 	__IO U8 done_displaying;
 

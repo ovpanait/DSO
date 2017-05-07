@@ -46,7 +46,6 @@ USE_THUMB_MODE = YES
 # - BOARD just passed as define (optional)
 MCU      = cortex-m3
 CHIP     = STM32F10x_64k_20k
-BOARD    = JYE109-13800-00A
 F_XTAL   = 8000000
 SYSCLOCK_CL = SYSCLK_FREQ_72MHz=72000000
 
@@ -89,7 +88,7 @@ CMSISDIR  = $(STMLIBDIR)/CMSIS/CM3/CoreSupport
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
 ## Demo-Application:
-SRC = 113-13801.c Board.c Common.c Screen.c stm32f10x_it.c Eeprom.c scope.c
+SRC = main.c Board.c Common.c Screen.c stm32f10x_it.c Eeprom.c scope.c
 
 ## compiler-specific sources
 #SRC += startup_stm32f10x_md_mthomas.c
