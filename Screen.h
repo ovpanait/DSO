@@ -104,18 +104,22 @@ typedef struct {
 
 /* Info bar */
 #define TIMEBASE_SIZE			5 * 8
-#define MAXV_SIZE			4 * 8
+#define PPV_SIZE			10 * 8
 
-#define PPV_SIZE			4 * 8
-#define PPV_OFFSETX			TIMEBASE_SIZE + WD_OFFSETX + 25
+#define PPV_OFFSETX			TIMEBASE_SIZE + WD_OFFSETX + 5
+#define PPV_OFFSETY			2
+
+#define MAXV_OFFSETX			PPV_OFFSETX + PPV_SIZE + 5
+#define MAXV_OFFSETY			2
 
 #define FREQ_SIZE			10 * 8
 
+#define CHAR_WID			8
+
 /* Waveform */
 #define WF_CL				clYellow
-
-/* Background */
 #define BG_CL				clBlack
+#define TEXT_CL				clWhite
 
 extern	FONT ASC8X16;
 

@@ -76,7 +76,7 @@ struct scope {
 void waveform_display(void);
 void waveform_init(void);
 void timebase_display(U16 timebase);
-void ppv_display(void);
+void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U16 bg_clr);
 
 void scope_init(void);
 void ADCs_Init(void);

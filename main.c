@@ -71,7 +71,9 @@ int main (void)
 
 		waveform_display();
 		timebase_display(timebase);
-		ppv_display();
+		/* Update peak-to-peak voltage */
+		voltage_display(PPV_OFFSETX, PPV_OFFSETY, "Vpp: ", (wave.max - wave.min + NOISE_MARGIN), TEXT_CL, BG_CL); 
+		voltage_display(MAXV_OFFSETX, MAXV_OFFSETY, "Vmax: ", (wave.max + NOISE_MARGIN), TEXT_CL, BG_CL);
 		Delay(55000);
 		dso_scope.done_displaying = 1;
 	}

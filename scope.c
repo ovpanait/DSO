@@ -5,7 +5,7 @@
 #include "Board.h"
 #include "stdlib.h"
 #include "Common.h"
-#include "stdio.h"
+#include "string.h"
 
 struct scope dso_scope;
 struct waveform wave;
@@ -358,22 +358,30 @@ void timebase_display(U16 timebase)
 		PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(timebase, buf, 10), clGreen, clBlack, &ASC8X16);	
 	}
 }
-		
-void ppv_display(void)
+
+void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U16 bg_clr)
 {
-	U16 ppv = ((wave.max - wave.min + NOISE_MARGIN) * 0.8);
+	U16 voltage = ( adc_val * 0.8);
+	U16 label_s = strlen(label);
 
-	itoa(ppv / 1000, buf, 10);
-	/* Print volts */
-	PutsGenic(PPV_OFFSETX, 2, (U8 *) "Vpp: ", clWhite, clBlack, &ASC8X16);
-	PutcGenic(PPV_OFFSETX + PPV_SIZE, 2, buf[0], clWhite, clBlack, &ASC8X16);
+	U8 v_buf[6];
+	v_buf[1] = '.';
+	v_buf[4] = 'V';
+	v_buf[5] = '\0';
 
-	if(ppv > 1000)
-		ppv %= 1000;
-	ppv /= 10;
-	/* Print decimal point and fractional part */
-	itoa(ppv, buf, 10);
-	PutcGenic(PPV_OFFSETX + PPV_SIZE + 8, 2, '.', clWhite, clBlack, &ASC8X16);
-	PutsGenic(PPV_OFFSETX + PPV_SIZE + 16, 2, buf, clWhite, clBlack, &ASC8X16);
-	PutcGenic(PPV_OFFSETX + PPV_SIZE + 32, 2, 'V', clWhite, clBlack, &ASC8X16);
+	itoa(voltage / 1000, buf, 10);
+	v_buf[0] = buf[0];
+
+	if(voltage > 1000)
+		voltage %= 1000;
+	voltage /= 10;
+	/* Fractional part */
+	itoa(voltage, buf, 10);
+	v_buf[2] = buf[0];
+	v_buf[3] = buf[1];
+
+	/* Display */
+	PutsGenic(posx, posy, label, text_clr, bg_clr, &ASC8X16);
+	PutsGenic(posx + label_s * CHAR_WID, posy, v_buf, text_clr, bg_clr, &ASC8X16);
 }
+
