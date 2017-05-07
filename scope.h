@@ -13,9 +13,13 @@
 #define MAX_VAL_MV		3300					/* Max measurable value */
 #define MV_PIXEL		(BLK_MV / BLK_PX)			/* Milivolts per pixel */
 #define ADC_VAL_DEL		((MV_PIXEL * ADC_TOTAL) / MAX_VAL_MV)	/* ADC value delimiter */
-#define GET_SAMPLE(x)		( (x) / ADC_VAL_DEL) 
 
-#define NOISE_MARGIN		40	/* ~40mv */
+/* Convert ADC value to pixels */
+#define GET_SAMPLE(x)		( (x) / ADC_VAL_DEL) 
+#define ADC_MV_PER_DIV		0.8
+
+/* Noise */
+#define NOISE_MARGIN		40	/* ~32mv */
 
 /* Debouncing parameters */
 #define DEBOUNCE_TOTAL		250
@@ -25,9 +29,10 @@
 #define PLUS_BTN_BIT		0
 #define MINUS_BTN_BIT		1
 
+/* Flags */
 #define TB_FLAG_BIT		0
 
-#define TIMEBASE_NR		8
+#define TIMEBASE_NR		8 /* Number of existing timebases */
 
 struct sample {
 	U16 val;
@@ -71,6 +76,7 @@ struct scope {
 void waveform_display(void);
 void waveform_init(void);
 void timebase_display(U16 timebase);
+void ppv_display(void);
 
 void scope_init(void);
 void ADCs_Init(void);

@@ -71,7 +71,8 @@ int main (void)
 
 		waveform_display();
 		timebase_display(timebase);
-		Delay(65000);
+		ppv_display();
+		Delay(55000);
 		dso_scope.done_displaying = 1;
 	}
 }	

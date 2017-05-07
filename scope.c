@@ -5,6 +5,7 @@
 #include "Board.h"
 #include "stdlib.h"
 #include "Common.h"
+#include "stdio.h"
 
 struct scope dso_scope;
 struct waveform wave;
@@ -15,6 +16,9 @@ __IO U16 timebase_pres[] = { 116, 115, 144, 288, 576, 1440, 2880, 7220 }; /* Tim
 /* Global peripheral initializers */
 __IO TIM_TimeBaseInitTypeDef TIM3_struct;
 __IO DMA_InitTypeDef DMA_struct;
+
+/* Static variables */
+static U8 buf[5];
 
 void scope_init(void)
 {
@@ -51,34 +55,33 @@ void waveform_init(void)
 
 void waveform_display(void)
 {
+	U8 buf[16];
 	/* Clear current waveform in one go */
-	FillRect(WD_OFFSETX, wave.max, WD_WIDTH, wave.min - wave.max + 2, BG_CL);
+	FillRect(WD_OFFSETX, wave.midpoint - GET_SAMPLE(wave.max), WD_WIDTH, GET_SAMPLE((wave.max - wave.min)) + 3, BG_CL);
 
 	display_grid();
 	U16 xpos = 10;
-	U8 buf[5];	
 	U16 i = 0, current_ypos = 0, prev_ypos = 0;
 	S16 diff = 0;
 	U16 midpoint = wave.midpoint;
 
+	wave.max = wave.display_buf[0];
+	wave.min = wave.display_buf[0];
+
 	/* Display first sample */
 	prev_ypos = GET_SAMPLE(wave.display_buf[i++]);
 	FillRect(xpos++, midpoint - prev_ypos, 1, 2, WF_CL);
-
-	/* Max and min */
-	wave.max = midpoint - prev_ypos;
-	wave.min = midpoint - prev_ypos;
 
 	/* Display the rest */
 	for(; i < SAMPLES_NR; ++i, ++xpos) {
 		current_ypos = GET_SAMPLE(wave.display_buf[i]);
 		
 		/* Update min and max */
-		if(midpoint - current_ypos < wave.max)
-			wave.max = midpoint - current_ypos;
-		if(midpoint - current_ypos > wave.min)
-			wave.min = midpoint - current_ypos;
-
+		if(wave.display_buf[i] > wave.max)
+			wave.max = wave.display_buf[i];
+		else if(wave.display_buf[i] < wave.min)
+			wave.min = wave.display_buf[i];
+		
 		/* Display sample accordingly */
 		diff = current_ypos - prev_ypos;
 		if(diff > 1 && diff <= WD_HEIGHT / 2 )
@@ -343,8 +346,6 @@ void fill_display_buf(void)
 
 void timebase_display(U16 timebase)
 {
-	U8 buf[6];
-
 	if(!timebase)
 		return;
 	
@@ -358,4 +359,21 @@ void timebase_display(U16 timebase)
 	}
 }
 		
+void ppv_display(void)
+{
+	U16 ppv = ((wave.max - wave.min + NOISE_MARGIN) * 0.8);
 
+	itoa(ppv / 1000, buf, 10);
+	/* Print volts */
+	PutsGenic(PPV_OFFSETX, 2, (U8 *) "Vpp: ", clWhite, clBlack, &ASC8X16);
+	PutcGenic(PPV_OFFSETX + PPV_SIZE, 2, buf[0], clWhite, clBlack, &ASC8X16);
+
+	if(ppv > 1000)
+		ppv %= 1000;
+	ppv /= 10;
+	/* Print decimal point and fractional part */
+	itoa(ppv, buf, 10);
+	PutcGenic(PPV_OFFSETX + PPV_SIZE + 8, 2, '.', clWhite, clBlack, &ASC8X16);
+	PutsGenic(PPV_OFFSETX + PPV_SIZE + 16, 2, buf, clWhite, clBlack, &ASC8X16);
+	PutcGenic(PPV_OFFSETX + PPV_SIZE + 32, 2, 'V', clWhite, clBlack, &ASC8X16);
+}

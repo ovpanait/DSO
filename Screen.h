@@ -103,9 +103,12 @@ typedef struct {
 #define GRID_CL				clWhite
 
 /* Info bar */
-#define TIMEBASE_SIZE			6 * 8
+#define TIMEBASE_SIZE			5 * 8
 #define MAXV_SIZE			4 * 8
+
 #define PPV_SIZE			4 * 8
+#define PPV_OFFSETX			TIMEBASE_SIZE + WD_OFFSETX + 25
+
 #define FREQ_SIZE			10 * 8
 
 /* Waveform */
