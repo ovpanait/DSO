@@ -50,6 +50,10 @@ struct waveform {
 };
 
 struct scope {
+	/* Real-time/Trigger mode */
+	__IO U8 rt_mode;
+	__IO U8 rt_timer ;
+
 	/* Timebase */
 	__IO U8 tb_i;
 	__IO U16 timebase;

@@ -22,6 +22,10 @@ static U8 buf[5];
 
 void scope_init(void)
 {
+	/* Real time mode */
+	dso_scope.rt_mode = 1;
+	dso_scope.rt_timer = 10;
+
 	dso_scope.done_sampling = 0;
 	dso_scope.done_displaying = 0;
 	dso_scope.tb_i = 4;
@@ -76,7 +80,7 @@ void waveform_display(void)
 	/* Display first sample */
 	prev_val = wave.display_buf[i];
 	prev_ypos = GET_SAMPLE(wave.display_buf[i++]);
-	FillRect(xpos++, midpoint - prev_ypos, 1, 2, WF_CL);
+	FillRect(xpos++, midpoint - prev_ypos, 2, 2, WF_CL);
 
 	/* Display the rest */
 	for(; i < SAMPLES_NR; ++i, ++xpos) {
@@ -361,7 +365,7 @@ void sampling_enable(void)
 		DMA_Init(DMA1_Channel1, &DMA_struct);
 	}
 
-	TIM3_struct.TIM_Period = 50;
+	TIM3_struct.TIM_Period = 72;
 	TIM_TimeBaseInit(TIM3, &TIM3_struct);
 	/* TIM3 TRGO selection */
 	TIM_SelectOutputTrigger(TIM3, TIM_TRGOSource_Update); // ADC_ExternalTrigConv_T3_TRGO

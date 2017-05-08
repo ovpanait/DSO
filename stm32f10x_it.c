@@ -197,9 +197,15 @@ void DMA1_Channel1_IRQHandler(void)
 	} else if(dso_scope.timebase == 10 ) {
 		for(U16 i = 0; i < SAMPLES_NR; i += 4)
 			if(dso_scope.avg_flag)
-				wave.avg_buf[i] = wave.avg_buf[i + 1] = wave.avg_buf[i+2] = wave.avg_buf[i+3] = wave.tmp_buf[i / 4];
+				wave.avg_buf[i] = 
+				wave.avg_buf[i+1] = 
+				wave.avg_buf[i+2] = 
+				wave.avg_buf[i+3] = wave.tmp_buf[i / 4];
 			else 
-				wave.avg_buf[i] = wave.avg_buf[i + 1] = wave.avg_buf[i+2] = wave.avg_buf[i+3] = (wave.avg_buf[i] + wave.tmp_buf[i / 4]) / 2;
+				wave.avg_buf[i] = 
+				wave.avg_buf[i+1] = 
+				wave.avg_buf[i+2] = 
+				wave.avg_buf[i+3] = (wave.avg_buf[i] + wave.tmp_buf[i / 4]) / 2;
 	}
 	else {
 		for(U16 i = 0; i < SAMPLES_NR; ++i)
@@ -216,7 +222,7 @@ void DMA1_Channel1_IRQHandler(void)
 		dso_scope.done_sampling = 1;
 	else {
 		/* Start searching for a new trigger */
-		TIM3_struct.TIM_Period = 50;
+		TIM3_struct.TIM_Period = 72;
 		TIM_TimeBaseInit(TIM3, &TIM3_struct);
 		TIM_SelectOutputTrigger(TIM3, TIM_TRGOSource_Update); // ADC_ExternalTrigConv_T3_TRGO
 		TIM_Cmd(TIM3, ENABLE);
@@ -255,7 +261,10 @@ void ADC1_2_IRQHandler(void)
 			dso_scope.prev_cal_samp < dso_scope.trig_lvl_adc )) {
 	/* Disable ADC Interrupts - the sampling can start now */
 	ADC_ITConfig(ADC1, ADC_IT_EOC , DISABLE);
-		
+	
+	/* Update real time counter */
+	dso_scope.rt_timer = 12 * dso_scope.timebase;
+	
 	/* Reload timer with proper parameters */
 	TIM_Cmd(TIM3, DISABLE);
 	TIM3_struct.TIM_Period = timebase_pres[dso_scope.tb_i] - 1;
@@ -263,14 +272,30 @@ void ADC1_2_IRQHandler(void)
 	TIM_SelectOutputTrigger(TIM3, TIM_TRGOSource_Update); // ADC_ExternalTrigConv_T3_TRGO
 	TIM_Cmd(TIM3, ENABLE);
 	
+	
+	/* Enable DMA on channel 1 (ADC1) */
+	DMA_Cmd(DMA1_Channel1, ENABLE);
+
 	/* Start averaging */
 	dso_scope.avg_flag = 1;
 
-	/* Enable DMA on channel 1 (ADC1) */
-	DMA_Cmd(DMA1_Channel1, ENABLE);
-	}
-	dso_scope.prev_cal_samp = ADC1->DR;
+	} else {
+		dso_scope.prev_cal_samp = ADC1->DR;
+		--dso_scope.rt_timer;
 		
+		if(!dso_scope.rt_timer) {
+			/* Reload timer with proper parameters */
+			TIM_Cmd(TIM3, DISABLE);
+			TIM3_struct.TIM_Period = timebase_pres[dso_scope.tb_i] - 1;
+			TIM_TimeBaseInit(TIM3, &TIM3_struct);
+			TIM_SelectOutputTrigger(TIM3, TIM_TRGOSource_Update); // ADC_ExternalTrigConv_T3_TRGO
+			TIM_Cmd(TIM3, ENABLE);
+	
+	
+			/* Enable DMA on channel 1 (ADC1) */
+			DMA_Cmd(DMA1_Channel1, ENABLE);
+		}
+	}
 }
 
 /******************* (C) COPYRIGHT 2010 STMicroelectronics *****END OF FILE****/
