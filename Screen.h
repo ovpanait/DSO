@@ -103,18 +103,23 @@ typedef struct {
 #define GRID_CL				clWhite
 
 /* Info bar */
-#define TIMEBASE_SIZE			5 * 8
-#define PPV_SIZE			10 * 8
 
+#define CHAR_WID			8
+#define TIMEBASE_SIZE			5 * CHAR_WID
+
+/* Peak-to-peak voltage */
+#define PPV_SIZE			9 * CHAR_WID
 #define PPV_OFFSETX			TIMEBASE_SIZE + WD_OFFSETX + 5
 #define PPV_OFFSETY			2
 
+/* Max voltage */
 #define MAXV_OFFSETX			PPV_OFFSETX + PPV_SIZE + 5
 #define MAXV_OFFSETY			2
+#define MAXV_SIZE			9 * CHAR_WID
 
-#define FREQ_SIZE			10 * 8
-
-#define CHAR_WID			8
+#define FREQ_SIZE			13 * CHAR_WID
+#define FREQ_OFFSETX			MAXV_OFFSETX + MAXV_SIZE + 10
+#define FREQ_OFFSETY			2
 
 /* Waveform */
 #define WF_CL				clYellow

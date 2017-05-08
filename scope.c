@@ -32,7 +32,7 @@ void scope_init(void)
 	dso_scope.avg_total = 32;
 
 	/* Trig lvl */
-	dso_scope.trig_lvl_adc = 1000;
+	dso_scope.trig_lvl_adc = 2000;
 	dso_scope.prev_cal_samp = ADC_MAX;
 	
 	/* Buttons */
@@ -55,7 +55,12 @@ void waveform_init(void)
 
 void waveform_display(void)
 {
-	U8 buf[16];
+	U16 prev_val, current_val;
+	U16 wave_per = 1; /* The first trigger is the one that started the samping */
+	U16 freq_cnt = 0;
+
+	double freq_avg = 0;
+
 	/* Clear current waveform in one go */
 	FillRect(WD_OFFSETX, wave.midpoint - GET_SAMPLE(wave.max), WD_WIDTH, GET_SAMPLE((wave.max - wave.min)) + 3, BG_CL);
 
@@ -69,18 +74,36 @@ void waveform_display(void)
 	wave.min = wave.display_buf[0];
 
 	/* Display first sample */
+	prev_val = wave.display_buf[i];
 	prev_ypos = GET_SAMPLE(wave.display_buf[i++]);
 	FillRect(xpos++, midpoint - prev_ypos, 1, 2, WF_CL);
 
 	/* Display the rest */
 	for(; i < SAMPLES_NR; ++i, ++xpos) {
-		current_ypos = GET_SAMPLE(wave.display_buf[i]);
+		current_val = wave.display_buf[i];
+		current_ypos = GET_SAMPLE(current_val);
 		
 		/* Update min and max */
-		if(wave.display_buf[i] > wave.max)
-			wave.max = wave.display_buf[i];
-		else if(wave.display_buf[i] < wave.min)
-			wave.min = wave.display_buf[i];
+		if(current_val > wave.max)
+			wave.max = current_val;
+		else if(current_val < wave.min)
+			wave.min = current_val;	
+
+		/* Update frequency counter */
+		if(i > 25){	
+		if(!(prev_val < dso_scope.trig_lvl_adc - NOISE_MARGIN && current_val > (dso_scope.trig_lvl_adc + NOISE_MARGIN)))
+			++wave_per;
+		else {
+			if(freq_cnt >= 1)
+			{	if(freq_avg == 0)
+					freq_avg = GET_FREQ(wave_per);
+				else 
+					freq_avg = (freq_avg + GET_FREQ(wave_per)) / 2;
+			}
+			wave_per = 1;
+			++freq_cnt;
+		}
+		}
 		
 		/* Display sample accordingly */
 		diff = current_ypos - prev_ypos;
@@ -90,9 +113,19 @@ void waveform_display(void)
 			FillRect(xpos, midpoint - prev_ypos, 2, 2 - diff, WF_CL);
 		else
 			FillRect(xpos, midpoint - current_ypos, 2, 2, WF_CL);
+		/* Update */
 		prev_ypos = current_ypos;
+		prev_val = current_val;
+
 	}
 
+	/* Update frequency */
+	if(freq_cnt > 1)
+		wave.frequency = freq_avg;
+	else 
+		wave.frequency = 0;
+
+	U32 freq = freq_avg;
 }
 	
 /* *
@@ -383,5 +416,43 @@ void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U
 	/* Display */
 	PutsGenic(posx, posy, label, text_clr, bg_clr, &ASC8X16);
 	PutsGenic(posx + label_s * CHAR_WID, posy, v_buf, text_clr, bg_clr, &ASC8X16);
+}
+
+void freq_display(double freq)
+{
+	clr_blk(FREQ_OFFSETX, FREQ_OFFSETY, FREQ_SIZE, 16);
+	PutsGenic(FREQ_OFFSETX, FREQ_OFFSETY, (U8 *)"Freq:", TEXT_CL, BG_CL, &ASC8X16);
+	if(!freq){
+		PutcGenic(FREQ_OFFSETX + 5 * CHAR_WID, FREQ_OFFSETY, '-', TEXT_CL, BG_CL, &ASC8X16);	
+		return;
+	}
+	U32 frq_int = freq * 100; /* Precision of two */
+
+	U8 dig_buf[7];
+	get_digits(frq_int, dig_buf);
+	U8 dig_ind = strlen(dig_buf);
+
+	U8 f_buf[9] = { 0, 0, '.', 0, 0, 'K', 'H', 'z', '\0'};
+
+	U8 *ptr = f_buf;
+	f_buf[4] = dig_buf[0]; --dig_ind;
+	f_buf[3] = dig_buf[1]; --dig_ind;
+	f_buf[1] = dig_buf[2]; --dig_ind;
+	if(dig_ind)
+		f_buf[0] = dig_buf[3];
+	else 
+		++ptr;
+
+	PutsGenic(FREQ_OFFSETX + 5 * CHAR_WID, FREQ_OFFSETY, ptr, TEXT_CL, BG_CL, &ASC8X16);
+}
+
+void get_digits(U32 n, U8 *dig_buf)
+{
+	while(n != 0){
+		*dig_buf = '0' + n % 10;
+		n /= 10;
+		++dig_buf;
+	}
+	*dig_buf = '\0';
 }
 

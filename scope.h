@@ -34,11 +34,8 @@
 
 #define TIMEBASE_NR		8 /* Number of existing timebases */
 
-struct sample {
-	U16 val;
-	U16 new_val;
-	U8 exist;
-};
+/* Frequency */
+#define GET_FREQ(freq_cnt)	(1000000.0 / (((U32)dso_scope.timebase * 12000 / SAMPLES_NR) * (freq_cnt)))
 
 struct waveform {
 	__IO U16 tmp_buf[SAMPLES_NR];
@@ -46,7 +43,7 @@ struct waveform {
 	__IO U16 display_buf[SAMPLES_NR];
 	
 	U8 midpoint;
-	U16 frequency;
+	double frequency;
 	U16 max;
 	U16 min;
 	U16 pp_v;
@@ -73,21 +70,27 @@ struct scope {
 	U8 debounced;
 };
 
+/* Display functions */
 void waveform_display(void);
-void waveform_init(void);
 void timebase_display(U16 timebase);
 void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U16 bg_clr);
+void freq_display(double freq);
+void get_digits(U32 n, U8 *dig_buf);
 
+/* Initialization */
 void scope_init(void);
+void waveform_init(void);
 void ADCs_Init(void);
 void DMA_Configuration(void);
 void TIM3_Configuration(void);
 void TIM4_Configuration(void);
 void NVIC_Configuration(void);
 
+/* Sampling */
 void sampling_config(void); /* Configure ADC1, DMA, TIM3 */
 void sampling_enable(void);
 void fill_display_buf(void);
 
+/* Buttons */
 U8 read_btns(void);
 #endif
