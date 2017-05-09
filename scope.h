@@ -19,7 +19,7 @@
 #define ADC_MV_PER_DIV		0.8
 
 /* Noise */
-#define NOISE_MARGIN		40	/* ~32mv */
+#define NOISE_MARGIN		100	/* ~32mv */
 
 /* Debouncing parameters */
 #define DEBOUNCE_TOTAL		250
@@ -52,7 +52,7 @@ struct waveform {
 struct scope {
 	/* Real-time/Trigger mode */
 	__IO U8 rt_mode;
-	__IO U8 rt_timer ;
+	__IO U16 rt_timer ;
 
 	/* Timebase */
 	__IO U8 tb_i;
@@ -68,6 +68,7 @@ struct scope {
 
 	/* ADC Trigger level */
 	__IO U16 trig_lvl_adc;
+	__IO U16 test_timer;
 	U16 prev_cal_samp; 		/* Previous sample */
 
 	/* Flags */

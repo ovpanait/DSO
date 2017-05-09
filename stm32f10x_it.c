@@ -257,13 +257,16 @@ void TIM3_IRQHandler(void)
 void ADC1_2_IRQHandler(void)
 {
 	ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);
+	
 	if((ADC1->DR > (dso_scope.trig_lvl_adc + NOISE_MARGIN) && 
 			dso_scope.prev_cal_samp < dso_scope.trig_lvl_adc )) {
+	//uputs("Triggered", USART1);
+
 	/* Disable ADC Interrupts - the sampling can start now */
 	ADC_ITConfig(ADC1, ADC_IT_EOC , DISABLE);
-	
+
 	/* Update real time counter */
-	dso_scope.rt_timer = 12 * dso_scope.timebase;
+	dso_scope.rt_timer = (U16)12 * dso_scope.timebase;
 	
 	/* Reload timer with proper parameters */
 	TIM_Cmd(TIM3, DISABLE);
@@ -272,18 +275,29 @@ void ADC1_2_IRQHandler(void)
 	TIM_SelectOutputTrigger(TIM3, TIM_TRGOSource_Update); // ADC_ExternalTrigConv_T3_TRGO
 	TIM_Cmd(TIM3, ENABLE);
 	
-	
-	/* Enable DMA on channel 1 (ADC1) */
-	DMA_Cmd(DMA1_Channel1, ENABLE);
-
 	/* Start averaging */
 	dso_scope.avg_flag = 1;
 
+	/* Enable DMA on channel 1 (ADC1) */
+	DMA_Cmd(DMA1_Channel1, ENABLE);
+
 	} else {
 		dso_scope.prev_cal_samp = ADC1->DR;
-		--dso_scope.rt_timer;
-		
-		if(!dso_scope.rt_timer) {
+
+		if(dso_scope.rt_timer) {
+			//uputs("Debugging", USART1);
+			--dso_scope.rt_timer;
+		}
+		else {
+			if(dso_scope.test_timer) {
+				--dso_scope.test_timer;
+				return;
+			}
+
+			/* Disable ADC Interrupts - the sampling can start now */
+			ADC_ITConfig(ADC1, ADC_IT_EOC , DISABLE);
+
+			//uputs("RTIMER 0\n", USART1);
 			/* Reload timer with proper parameters */
 			TIM_Cmd(TIM3, DISABLE);
 			TIM3_struct.TIM_Period = timebase_pres[dso_scope.tb_i] - 1;
@@ -291,7 +305,10 @@ void ADC1_2_IRQHandler(void)
 			TIM_SelectOutputTrigger(TIM3, TIM_TRGOSource_Update); // ADC_ExternalTrigConv_T3_TRGO
 			TIM_Cmd(TIM3, ENABLE);
 	
-	
+			/* Start averaging */
+			dso_scope.avg_flag = 1;
+			dso_scope.avg_total = 1;
+
 			/* Enable DMA on channel 1 (ADC1) */
 			DMA_Cmd(DMA1_Channel1, ENABLE);
 		}

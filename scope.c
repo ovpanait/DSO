@@ -18,25 +18,26 @@ __IO TIM_TimeBaseInitTypeDef TIM3_struct;
 __IO DMA_InitTypeDef DMA_struct;
 
 /* Static variables */
-static U8 buf[5];
+static U8 buf[8];
 
 void scope_init(void)
 {
-	/* Real time mode */
-	dso_scope.rt_mode = 1;
-	dso_scope.rt_timer = 10;
-
+	dso_scope.tb_i = 4;
 	dso_scope.done_sampling = 0;
 	dso_scope.done_displaying = 0;
-	dso_scope.tb_i = 4;
 	dso_scope.timebase = timebase_vals[dso_scope.tb_i];
 	
+	/* Real time mode */
+	dso_scope.rt_mode = 1;
+	dso_scope.rt_timer = (U16)12 * dso_scope.timebase;
+
 	/* Averaging function */
 	dso_scope.avg_flag = 1;
 	dso_scope.avg_total = 32;
 
 	/* Trig lvl */
 	dso_scope.trig_lvl_adc = 2000;
+	dso_scope.test_timer = dso_scope.timebase / 2;
 	dso_scope.prev_cal_samp = ADC_MAX;
 	
 	/* Buttons */
@@ -95,18 +96,18 @@ void waveform_display(void)
 
 		/* Update frequency counter */
 		if(i > 25){	
-		if(!(prev_val < dso_scope.trig_lvl_adc - NOISE_MARGIN && current_val > (dso_scope.trig_lvl_adc + NOISE_MARGIN)))
-			++wave_per;
-		else {
-			if(freq_cnt >= 1)
-			{	if(freq_avg == 0)
-					freq_avg = GET_FREQ(wave_per);
-				else 
-					freq_avg = (freq_avg + GET_FREQ(wave_per)) / 2;
+			if(!(prev_val < dso_scope.trig_lvl_adc - NOISE_MARGIN && current_val > (dso_scope.trig_lvl_adc + NOISE_MARGIN)))
+				++wave_per;
+			else {
+				if(freq_cnt >= 1)
+				{	if(freq_avg == 0)
+						freq_avg = GET_FREQ(wave_per);
+					else 
+						freq_avg = (freq_avg + GET_FREQ(wave_per)) / 2;
+				}
+				wave_per = 1;
+				++freq_cnt;
 			}
-			wave_per = 1;
-			++freq_cnt;
-		}
 		}
 		
 		/* Display sample accordingly */
@@ -128,8 +129,6 @@ void waveform_display(void)
 		wave.frequency = freq_avg;
 	else 
 		wave.frequency = 0;
-
-	U32 freq = freq_avg;
 }
 	
 /* *
@@ -349,7 +348,8 @@ void sampling_enable(void)
 	dso_scope.done_sampling = 0;
 	dso_scope.done_displaying = 0;
 	dso_scope.avg_total = 32;
-	dso_scope.prev_cal_samp = ADC_MAX;	
+	dso_scope.prev_cal_samp = ADC_MAX;
+	dso_scope.test_timer = dso_scope.timebase / 2;	
 	
 	/* 10us and 20us special handling */
 	/* Sample only half the total amount */
@@ -364,7 +364,6 @@ void sampling_enable(void)
 		DMA_struct.DMA_BufferSize = SAMPLES_NR;
 		DMA_Init(DMA1_Channel1, &DMA_struct);
 	}
-
 	TIM3_struct.TIM_Period = 72;
 	TIM_TimeBaseInit(TIM3, &TIM3_struct);
 	/* TIM3 TRGO selection */

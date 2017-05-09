@@ -451,7 +451,12 @@ void display_grid(void)
 	}
 }
 
+/* Display coursor */
 
+void cursor_display(U16 posx, U16 posy, U8 cursor_type, U16 cursor_cl)
+{
+	PutcGenic(posx, posy, cursor_type, cursor_cl, BG_CL, &ASC8X16);
+}
 
 
 

@@ -43,30 +43,7 @@ enum  COLOR{
 	clChocolate		= 	RGB(210, 105, 30),
 	clMediumseagreen	= 	RGB(60, 179, 113),
 	clPeachpuff		=	RGB(255, 218, 185),
-	clSeagreen		=	RGB(46, 139, 87),
-
-	clBG1			= 	clGainsboro,
-	
-	clActiveItem1		=	clAqua,
-	clActiveItem2		=	clturquoise,
-
-	clBtnBG1		=	clOrange,
-	clBtnBG2		= 	clBlue,
-	clBtnBG3		=	clGainsboro,
-	clBtnBG4		= 	clSkyblue,
-	clBtnBG5		= 	clRed,
-	
-	clBtnFG1		=	clBlack,
-	clBtnFG2		= 	clWhite,
-
-	clCh1			= 	clYellow,
-	clTB			=	clGreen,
-	clTrigger		=	clHotpink,
-
-	clCursorT		= 	clMediumseagreen,
-	clCursorV		= 	clOrange,
-	clCursorActive		=	clAqua,
-	clMeasurement		= 	clGray3,
+	clSeagreen		=	RGB(46, 139, 87)
 } ;
 
 typedef struct {
@@ -126,6 +103,12 @@ typedef struct {
 #define BG_CL				clBlack
 #define TEXT_CL				clWhite
 
+/* Coursor */
+#define CURSOR_LEFT_CL			clAqua
+#define CURSOR_LEFTX			0
+#define CURSOR_RIGHT_CL			clHotpink
+#define CURSOR_RIGHTX			WD_OFFSETX + WD_WIDTH
+
 extern	FONT ASC8X16;
 
 void	clr_screen(void);
@@ -136,6 +119,7 @@ void 	FillRect(S16 x, S16 y, S16 xsize, S16 ysize, U16 color);
 void	PutcGenic(U16 x, U16 y, U8 ch, U16 fgcolor, U16 bgcolor, FONT *font);
 void	PutsGenic(U16 x, U16 y, U8 *str, U16 fgcolor, U16 bgcolor, FONT *font);
 void 	display_grid(void);
+void 	cursor_display(U16 posx, U16 posy, U8 cursor_type, U16 cursor_cl);
 
 #endif
 
