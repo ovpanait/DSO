@@ -19,19 +19,25 @@
 #define ADC_MV_PER_DIV		0.8
 
 /* Noise */
-#define NOISE_MARGIN		100	/* ~32mv */
+#define NOISE_MARGIN		40	/* ~32mv */
 
 /* Debouncing parameters */
 #define DEBOUNCE_TOTAL		250
 #define DEBOUNCE_LIM		100
 
 /* Buttons */
+#define BTN_PORT		GPIOB
+
+#define PLUS_BTN_PIN		GPIO_Pin_14
 #define PLUS_BTN_BIT		0
+
+#define MINUS_BTN_PIN		GPIO_Pin_15
 #define MINUS_BTN_BIT		1
 
-/* Flags */
-#define TB_FLAG_BIT		0
+#define SEL_BTN_PIN		GPIO_Pin_13
+#define SEL_BTN_BIT		2
 
+/* Timebase */
 #define TIMEBASE_NR		8 /* Number of existing timebases */
 
 /* Frequency */
@@ -71,8 +77,9 @@ struct scope {
 	__IO U16 test_timer;
 	U16 prev_cal_samp; 		/* Previous sample */
 
-	/* Flags */
+	/* Buttons */
 	U8 debounced;
+	U8 btns_flags;
 };
 
 /* Display functions */

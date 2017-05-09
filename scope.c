@@ -164,16 +164,35 @@ U8 check_btn(GPIO_TypeDef* GPIOx, U16 GPIO_pin, U8 state){
 	return 0;
 }
 
+#define CHECK_BTN(btn_flag_bit, btn_pin) \
+		check_btn(BTN_PORT, btn_pin, RESET)\
+	 	if(BitTest(dso_scope.debounced, (1 << (btn_flag_bit)) && !check_btn(BTN_PORT, btn_pin, RESET)) \
+			BitClr(dso_scope.debounced, (1 << btn_flag_bit)); \
+		else if(!BitTest(dso_scope.debounced, (1 << btn_flag_pin)) && check_btn(BTN_PORT, btn_pin, RESET)){ \
+			BitSet(dso_scope.debounced, (1 << btn_flag_bit)); \
+			BitSet(btns_flags, (1 << btn_flag_bit)); \
+		}
+void btns_update(void)
+{
+	if(BitTest(btns_flags, (1 << TB_FLAG_BIT))) {
+		dso_scope.tb_i = (dso_scope.tb_i + 1) % TIMEBASE_NR;
+		dso_scope.timebase = timebase = timebase_vals[dso_scope.tb_i];
+	} else 
+		timebase = 0;
+}
+
 U8 read_btns(void) {
 
-	U8 btns_flags = 0;
+	CHECK_BTN(PLUS_BTN_BIT, PLUS_BTN_PIN);
+	CHECK_BTN(MINUS_BTN_BIT, MINUS_BTN_PIN);
+	CHECK_BTN(SEL_BTN_BIT, SEL_BTN_PIN);
 
-	if(BitTest(dso_scope.debounced, (1 << PLUS_BTN_BIT)) && !check_btn(GPIOB, GPIO_Pin_14, RESET)) 
-		BitClr(dso_scope.debounced, (1 << PLUS_BTN_BIT));
-	else if(!BitTest(dso_scope.debounced, (1 << PLUS_BTN_BIT)) && check_btn(GPIOB, GPIO_Pin_14, RESET)){
-		BitSet(dso_scope.debounced, (1 << PLUS_BTN_BIT));
-		BitSet(btns_flags, (1 << TB_FLAG_BIT));
-	}
+	update_btns();
+	if(BitTest(btns_flags, (1 << TB_FLAG_BIT))) {
+			dso_scope.tb_i = (dso_scope.tb_i + 1) % TIMEBASE_NR;
+			dso_scope.timebase = timebase = timebase_vals[dso_scope.tb_i];
+		} else 
+			timebase = 0;
 
 	return btns_flags;
 }
@@ -421,6 +440,7 @@ void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U
 	PutsGenic(posx + label_s * CHAR_WID, posy, v_buf, text_clr, bg_clr, &ASC8X16);
 }
 
+/* TODO: Fix freq calcualtion for frequencies < 1 Khz */
 void freq_display(double freq)
 {
 	clr_blk(FREQ_OFFSETX, FREQ_OFFSETY, FREQ_SIZE, 16);
@@ -445,6 +465,7 @@ void freq_display(double freq)
 		f_buf[0] = dig_buf[3];
 	else 
 		++ptr;
+	//uputs("Debug", USART1);
 
 	PutsGenic(FREQ_OFFSETX + 5 * CHAR_WID, FREQ_OFFSETY, ptr, TEXT_CL, BG_CL, &ASC8X16);
 }

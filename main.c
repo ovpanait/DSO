@@ -59,21 +59,16 @@ int main (void)
 		*/
 
 		/* Read buttons */
-		btns_flags = read_btns();
-		if(BitTest(btns_flags, (1 << TB_FLAG_BIT))) {
-			dso_scope.tb_i = (dso_scope.tb_i + 1) % TIMEBASE_NR;
-			dso_scope.timebase = timebase = timebase_vals[dso_scope.tb_i];
-		} else 
-			timebase = 0;
+		read_btns();
 		
 		fill_display_buf();
 		sampling_enable();
 
 		waveform_display();
-		timebase_display(timebase);
+		timebase_display(timebase); /* TODO check timebase flag instead of timebase variable */
 		/* Update peak-to-peak voltage */
 		voltage_display(PPV_OFFSETX, PPV_OFFSETY, "Vpp:", (wave.max - wave.min + NOISE_MARGIN), TEXT_CL, BG_CL);
-		/* Update max volateg */
+		/* Update max voltage */
 		voltage_display(MAXV_OFFSETX, MAXV_OFFSETY, "Vmax:", (wave.max + NOISE_MARGIN), TEXT_CL, BG_CL);
 		/* Display cursors */
 		cursor_display(CURSOR_LEFTX, wave.midpoint - 7, '>', CURSOR_LEFT_CL);
@@ -81,9 +76,8 @@ int main (void)
 
 		freq_display(wave.frequency);
 		//for(int i = 0 ; i < ; i++)
-			Delay(55000);
+			Delay(30000);
 		dso_scope.done_displaying = 1;
 	}
-	UartPutc('\n', USART1);
 }	
 
