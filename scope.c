@@ -42,6 +42,9 @@ void scope_init(void)
 	
 	/* Buttons */
 	dso_scope.debounced = 0;
+	BitSet(dso_scope.btns_flags, (1 << LCURSOR_BIT));
+	BitSet(dso_scope.btns_flags, (1 << RCURSOR_BIT));
+	BitSet(dso_scope.btns_flags, (1 << TB_BIT));
 	dso_scope.btn_selected = tb;
 }
 
@@ -70,7 +73,7 @@ void waveform_display(void)
 	/* Clear current waveform in one go */
 	FillRect(WD_OFFSETX, wave.midpoint - GET_SAMPLE(wave.max) - 10, WD_WIDTH, GET_SAMPLE((wave.max - wave.min)) + 3 + 20, BG_CL);
 
-	display_grid();
+	grid_display();
 	U16 xpos = 10;
 	U16 i = 0, current_ypos = 0, prev_ypos = 0;
 	S16 diff = 0;
@@ -178,6 +181,7 @@ void btns_update(void)
 	if(BitTest(dso_scope.btns_flags, (1 << SEL_BTN_BIT))) {
 		dso_scope.btn_selected = ( dso_scope.btn_selected + 1 ) % 3;
 		BitClr(dso_scope.btns_flags, (1 << SEL_BTN_BIT));
+		BitSet(dso_scope.btns_flags, (1 << TB_BIT));
 	}
 
 	/* If PLUS button was pressed */
@@ -185,20 +189,22 @@ void btns_update(void)
 		switch(dso_scope.btn_selected) {
 			case tb:
 				/* Increase timebase */
+				BitSet(dso_scope.btns_flags, (1 << TB_BIT));
 				dso_scope.tb_i = (dso_scope.tb_i + 1) % TIMEBASE_NR;
 				dso_scope.timebase = timebase_vals[dso_scope.tb_i];
 				break;
 			case l_cursor:
 				/* Move waveform upwards */
+				BitSet(dso_scope.btns_flags, (1 << LCURSOR_BIT));
 				wave.midpoint -= 10;
 				break;
 			case r_cursor:
 				/* Increase trigger level */
+				BitSet(dso_scope.btns_flags, (1 << RCURSOR_BIT));
 				dso_scope.trig_lvl_adc += 100;
 				break;
 		} 
-		if(dso_scope.btn_selected != tb)
-			BitClr(dso_scope.btns_flags, (1 << PLUS_BTN_BIT));
+		BitClr(dso_scope.btns_flags, (1 << PLUS_BTN_BIT));
 	}
 	
 	/* If MINUS button was pressed */
@@ -206,6 +212,7 @@ void btns_update(void)
 		switch(dso_scope.btn_selected) {
 			case tb:
 				/* Decrease timebase */
+				BitSet(dso_scope.btns_flags, (1 << TB_BIT));
 				if(!dso_scope.tb_i)
 					dso_scope.tb_i = TIMEBASE_NR;
 				--dso_scope.tb_i;
@@ -213,16 +220,17 @@ void btns_update(void)
 				dso_scope.timebase = timebase_vals[dso_scope.tb_i];
 				break;
 			case l_cursor:
+				BitSet(dso_scope.btns_flags, (1 << LCURSOR_BIT));
 				/* Move waveform downwards */
 				wave.midpoint += 10;
 				break;
 			case r_cursor:
 				/* Decrease trigger lvl */
+				BitSet(dso_scope.btns_flags, (1 << RCURSOR_BIT));
 				dso_scope.trig_lvl_adc -= 100;
 				break;
 		}
-		if(dso_scope.btn_selected != tb)
-			BitClr(dso_scope.btns_flags, (1 << MINUS_BTN_BIT));
+		BitClr(dso_scope.btns_flags, (1 << MINUS_BTN_BIT));
 	}
 }
 
@@ -435,81 +443,6 @@ void fill_display_buf(void)
 {
 	for(int i = 0; i < SAMPLES_NR; ++i) 
 		wave.display_buf[i] = wave.avg_buf[i];
-}
-
-void timebase_display(U16 timebase)
-{
-	if(!timebase)
-		return;
-	
-	clr_blk(WD_OFFSETX, 2, 5 * 8, 12);
-	if(timebase >= 1000){
-		PutsGenic(WD_OFFSETX + 8, 2, (U8 *)" ms", clGreen, clBlack, &ASC8X16);
-		PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(dso_scope.timebase / 1000, buf, 10), SELECTED_CL, clBlack, &ASC8X16);
-	} else {
-		PutsGenic(WD_OFFSETX + 17, 2, (U8 *)" us", clGreen, clBlack, &ASC8X16);
-		PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(dso_scope.timebase, buf, 10), SELECTED_CL, clBlack, &ASC8X16);	
-	}
-
-	BitClr(dso_scope.btns_flags, (1 << PLUS_BTN_BIT));
-	BitClr(dso_scope.btns_flags, (1 << MINUS_BTN_BIT));
-	
-}
-
-void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U16 bg_clr)
-{
-	U16 voltage = ( adc_val * 0.8);
-	U16 label_s = strlen(label);
-
-	U8 v_buf[6];
-	v_buf[1] = '.';
-	v_buf[4] = 'V';
-	v_buf[5] = '\0';
-
-	itoa(voltage / 1000, buf, 10);
-	v_buf[0] = buf[0];
-
-	if(voltage > 1000)
-		voltage %= 1000;
-	voltage /= 10;
-	/* Fractional part */
-	itoa(voltage, buf, 10);
-	v_buf[2] = buf[0];
-	v_buf[3] = buf[1];
-
-	/* Display */
-	PutsGenic(posx, posy, label, text_clr, bg_clr, &ASC8X16);
-	PutsGenic(posx + label_s * CHAR_WID, posy, v_buf, text_clr, bg_clr, &ASC8X16);
-}
-
-/* TODO: Fix freq calcualtion for frequencies < 1 Khz */
-void freq_display(double freq)
-{
-	clr_blk(FREQ_OFFSETX, FREQ_OFFSETY, FREQ_SIZE, 16);
-	PutsGenic(FREQ_OFFSETX, FREQ_OFFSETY, (U8 *)"Freq:", TEXT_CL, BG_CL, &ASC8X16);
-	if(!freq){
-		PutcGenic(FREQ_OFFSETX + 5 * CHAR_WID, FREQ_OFFSETY, '-', TEXT_CL, BG_CL, &ASC8X16);	
-		return;
-	}
-	U32 frq_int = freq * 100; /* Precision of two */
-
-	U8 dig_buf[7];
-	get_digits(frq_int, dig_buf);
-	U8 dig_ind = strlen(dig_buf);
-
-	U8 f_buf[9] = { 0, 0, '.', 0, 0, 'K', 'H', 'z', '\0'};
-
-	U8 *ptr = f_buf;
-	f_buf[4] = dig_buf[0]; --dig_ind;
-	f_buf[3] = dig_buf[1]; --dig_ind;
-	f_buf[1] = dig_buf[2]; --dig_ind;
-	if(dig_ind)
-		f_buf[0] = dig_buf[3];
-	else 
-		++ptr;
-	//uputs("Debug", USART1);
-
-	PutsGenic(FREQ_OFFSETX + 5 * CHAR_WID, FREQ_OFFSETY, ptr, TEXT_CL, BG_CL, &ASC8X16);
 }
 
 void get_digits(U32 n, U8 *dig_buf)

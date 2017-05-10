@@ -1,11 +1,19 @@
 #include	"Common.h"
 #include	"Board.h"
 #include	"Screen.h"
+#include 	"scope.h"
+#include 	"string.h"
+#include 	"stdlib.h"
+
+extern struct scope dso_scope;
+extern struct waveform wave;
 
 // ==========================================================
 //	File Scope Variables
 // ==========================================================
 //
+
+static U8 buf[10];
 
 #define	ASC8X16_Use_Display_Char_Only
 const U8 Font_ASC8X16[256*16] = {
@@ -420,7 +428,8 @@ void PutsGenic(U16 x, U16 y, U8 *str, U16 fgcolor, U16 bgcolor, FONT *font)
  	}
 }
 
-void display_grid(void)
+/* Display functions */
+void grid_display(void)
 {
 	U8 i;
 	U16 gridx, gridy;
@@ -452,11 +461,108 @@ void display_grid(void)
 }
 
 /* Display coursor */
-
 void cursor_display(U16 posx, U16 posy, U8 cursor_type, U16 cursor_cl)
 {
-	PutcGenic(posx, posy, cursor_type, cursor_cl, BG_CL, &ASC8X16);
+	if(BitTest(dso_scope.btns_flags, (1 << LCURSOR_BIT)) ||
+		BitTest(dso_scope.btns_flags, (1 << RCURSOR_BIT))) {
+		clr_blk(posx, posy - 10, 8, 16 + 20);
+		PutcGenic(posx, posy, cursor_type, cursor_cl, BG_CL, &ASC8X16);
+	}
+}
+
+/* Display timebase */
+void timebase_display(U16 flag)
+{
+	if(!flag)
+		return;
+	
+	U16 cl = (dso_scope.btn_selected == tb) ? SELECTED_CL : clGreen;
+	BitClr(dso_scope.btns_flags, (1 << TB_BIT));
+
+	clr_blk(WD_OFFSETX, 2, 5 * 8, 12);
+	if(dso_scope.timebase >= 1000){
+		PutsGenic(WD_OFFSETX + 8, 2, (U8 *)" ms", cl, clBlack, &ASC8X16);
+		PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(dso_scope.timebase / 1000, buf, 10), cl, clBlack, &ASC8X16);
+	} else {
+		PutsGenic(WD_OFFSETX + 17, 2, (U8 *)" us", cl, clBlack, &ASC8X16);
+		PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(dso_scope.timebase, buf, 10), cl, clBlack, &ASC8X16);	
+	}
+
+	BitClr(dso_scope.btns_flags, (1 << PLUS_BTN_BIT));
+	BitClr(dso_scope.btns_flags, (1 << MINUS_BTN_BIT));
+	
 }
 
 
+void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U16 bg_clr)
+{
+	U16 voltage = ( adc_val * 0.8);
+	U16 label_s = strlen(label);
+
+	U8 v_buf[6];
+	v_buf[1] = '.';
+	v_buf[4] = 'V';
+	v_buf[5] = '\0';
+
+	itoa(voltage / 1000, buf, 10);
+	v_buf[0] = buf[0];
+
+	if(voltage > 1000)
+		voltage %= 1000;
+	voltage /= 10;
+	/* Fractional part */
+	itoa(voltage, buf, 10);
+	v_buf[2] = buf[0];
+	v_buf[3] = buf[1];
+
+	/* Display */
+	PutsGenic(posx, posy, label, text_clr, bg_clr, &ASC8X16);
+	PutsGenic(posx + label_s * CHAR_WID, posy, v_buf, text_clr, bg_clr, &ASC8X16);
+}
+
+/* TODO: Fix freq calcualtion for frequencies < 1 Khz */
+void freq_display(double freq)
+{
+	clr_blk(FREQ_OFFSETX, FREQ_OFFSETY, FREQ_SIZE, 16);
+	PutsGenic(FREQ_OFFSETX, FREQ_OFFSETY, (U8 *)"Freq:", TEXT_CL, BG_CL, &ASC8X16);
+	if(!freq){
+		PutcGenic(FREQ_OFFSETX + 5 * CHAR_WID, FREQ_OFFSETY, '-', TEXT_CL, BG_CL, &ASC8X16);	
+		return;
+	}
+	U32 frq_int = freq * 100; /* Precision of two */
+
+	U8 dig_buf[7];
+	get_digits(frq_int, dig_buf);
+	U8 dig_ind = strlen(dig_buf);
+
+	U8 f_buf[9] = { 0, 0, '.', 0, 0, 'K', 'H', 'z', '\0'};
+
+	U8 *ptr = f_buf;
+	f_buf[4] = dig_buf[0]; --dig_ind;
+	f_buf[3] = dig_buf[1]; --dig_ind;
+	f_buf[1] = dig_buf[2]; --dig_ind;
+	if(dig_ind)
+		f_buf[0] = dig_buf[3];
+	else 
+		++ptr;
+	//uputs("Debug", USART1);
+
+	PutsGenic(FREQ_OFFSETX + 5 * CHAR_WID, FREQ_OFFSETY, ptr, TEXT_CL, BG_CL, &ASC8X16);
+}
+
+void info_display(void)
+{
+	timebase_display(BitTest(dso_scope.btns_flags, (1 << TB_BIT)));
+	/* Update peak-to-peak voltage */
+	voltage_display(PPV_OFFSETX, PPV_OFFSETY, (U8 *)"Vpp:", (wave.max - wave.min + NOISE_MARGIN), TEXT_CL, BG_CL);
+	/* Update max voltage */
+	voltage_display(MAXV_OFFSETX, MAXV_OFFSETY, (U8 *)"Vmax:", (wave.max + NOISE_MARGIN), TEXT_CL, BG_CL);
+	/* Display cursors */
+	cursor_display(CURSOR_LEFTX, wave.midpoint - 7, '>', 
+			(dso_scope.btn_selected == l_cursor) ? SELECTED_CL : CURSOR_LEFT_CL);
+	cursor_display(CURSOR_RIGHTX, wave.midpoint - GET_SAMPLE(dso_scope.trig_lvl_adc) - 6, '<', 						      				(dso_scope.btn_selected == r_cursor) ? SELECTED_CL : CURSOR_RIGHT_CL);
+
+	/* Display frequency */
+	freq_display(wave.frequency);
+}
 

@@ -121,8 +121,13 @@ void	SetWindow(U16 x, U16 xsize, U16 y, U16 ysize);
 void 	FillRect(S16 x, S16 y, S16 xsize, S16 ysize, U16 color);
 void	PutcGenic(U16 x, U16 y, U8 ch, U16 fgcolor, U16 bgcolor, FONT *font);
 void	PutsGenic(U16 x, U16 y, U8 *str, U16 fgcolor, U16 bgcolor, FONT *font);
-void 	display_grid(void);
+
+void 	info_display(void);
+void 	grid_display(void);
+void 	timebase_display(U16 timebase);
 void 	cursor_display(U16 posx, U16 posy, U8 cursor_type, U16 cursor_cl);
+void 	voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U16 bg_clr);
+void 	freq_display(double freq);
 
 #endif
 

@@ -40,6 +40,11 @@
 #define OK_BTN_BIT		3
 #define OK_BTN_PIN		GPIO_Pin 15
 
+#define TB_BIT			4
+#define LCURSOR_BIT		5
+#define RCURSOR_BIT		6
+#define SINGLES_BIT		7
+
 typedef enum {
 	l_cursor = 0,
 	r_cursor,
@@ -94,9 +99,6 @@ struct scope {
 
 /* Display functions */
 void waveform_display(void);
-void timebase_display(U16 timebase);
-void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U16 bg_clr);
-void freq_display(double freq);
 void get_digits(U32 n, U8 *dig_buf);
 
 /* Initialization */
