@@ -61,22 +61,29 @@ int main (void)
 		/* Read buttons */
 		read_btns();
 		
+		/* Prepare sampling operation */
 		fill_display_buf();
+
+		/* Start sampling */
 		sampling_enable();
 
 		waveform_display();
-		timebase_display(timebase); /* TODO check timebase flag instead of timebase variable */
+		timebase_display(BitTest(dso_scope.btns_flags, (1 << PLUS_BTN_BIT)) || 
+					BitTest(dso_scope.btns_flags, (1 << MINUS_BTN_BIT)));
 		/* Update peak-to-peak voltage */
 		voltage_display(PPV_OFFSETX, PPV_OFFSETY, "Vpp:", (wave.max - wave.min + NOISE_MARGIN), TEXT_CL, BG_CL);
 		/* Update max voltage */
 		voltage_display(MAXV_OFFSETX, MAXV_OFFSETY, "Vmax:", (wave.max + NOISE_MARGIN), TEXT_CL, BG_CL);
 		/* Display cursors */
-		cursor_display(CURSOR_LEFTX, wave.midpoint - 7, '>', CURSOR_LEFT_CL);
-		cursor_display(CURSOR_RIGHTX, wave.midpoint - GET_SAMPLE(dso_scope.trig_lvl_adc) - 6, '<', CURSOR_RIGHT_CL);
+		cursor_display(CURSOR_LEFTX, wave.midpoint - 7, '>', 
+					(dso_scope.btn_selected == l_cursor) ? SELECTED_CL : CURSOR_LEFT_CL);
+		cursor_display(CURSOR_RIGHTX, wave.midpoint - GET_SAMPLE(dso_scope.trig_lvl_adc) - 6, '<', 
+					(dso_scope.btn_selected == r_cursor) ? SELECTED_CL : CURSOR_RIGHT_CL);
 
+		/* Display frequency */
 		freq_display(wave.frequency);
 		//for(int i = 0 ; i < ; i++)
-			Delay(30000);
+			Delay(35000);
 		dso_scope.done_displaying = 1;
 	}
 }	

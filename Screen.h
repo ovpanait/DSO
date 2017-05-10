@@ -94,6 +94,7 @@ typedef struct {
 #define MAXV_OFFSETY			2
 #define MAXV_SIZE			9 * CHAR_WID
 
+/* Frequency */
 #define FREQ_SIZE			13 * CHAR_WID
 #define FREQ_OFFSETX			MAXV_OFFSETX + MAXV_SIZE + 10
 #define FREQ_OFFSETY			2
@@ -106,8 +107,10 @@ typedef struct {
 /* Coursor */
 #define CURSOR_LEFT_CL			clAqua
 #define CURSOR_LEFTX			0
-#define CURSOR_RIGHT_CL			clHotpink
+#define CURSOR_RIGHT_CL			clAqua
 #define CURSOR_RIGHTX			WD_OFFSETX + WD_WIDTH
+
+#define SELECTED_CL			clHotpink
 
 extern	FONT ASC8X16;
 

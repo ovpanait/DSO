@@ -42,6 +42,7 @@ void scope_init(void)
 	
 	/* Buttons */
 	dso_scope.debounced = 0;
+	dso_scope.btn_selected = tb;
 }
 
 void waveform_init(void) 
@@ -67,7 +68,7 @@ void waveform_display(void)
 	double freq_avg = 0;
 
 	/* Clear current waveform in one go */
-	FillRect(WD_OFFSETX, wave.midpoint - GET_SAMPLE(wave.max), WD_WIDTH, GET_SAMPLE((wave.max - wave.min)) + 3, BG_CL);
+	FillRect(WD_OFFSETX, wave.midpoint - GET_SAMPLE(wave.max) - 10, WD_WIDTH, GET_SAMPLE((wave.max - wave.min)) + 3 + 20, BG_CL);
 
 	display_grid();
 	U16 xpos = 10;
@@ -165,36 +166,73 @@ U8 check_btn(GPIO_TypeDef* GPIOx, U16 GPIO_pin, U8 state){
 }
 
 #define CHECK_BTN(btn_flag_bit, btn_pin) \
-		check_btn(BTN_PORT, btn_pin, RESET)\
-	 	if(BitTest(dso_scope.debounced, (1 << (btn_flag_bit)) && !check_btn(BTN_PORT, btn_pin, RESET)) \
-			BitClr(dso_scope.debounced, (1 << btn_flag_bit)); \
-		else if(!BitTest(dso_scope.debounced, (1 << btn_flag_pin)) && check_btn(BTN_PORT, btn_pin, RESET)){ \
-			BitSet(dso_scope.debounced, (1 << btn_flag_bit)); \
-			BitSet(btns_flags, (1 << btn_flag_bit)); \
+	 	if(BitTest(dso_scope.debounced, (1 << (btn_flag_bit))) && !check_btn(BTN_PORT, (btn_pin), RESET)) \
+			BitClr(dso_scope.debounced, (1 << (btn_flag_bit))); \
+		else if(!BitTest(dso_scope.debounced, (1 << (btn_flag_bit))) && check_btn(BTN_PORT, (btn_pin), RESET)){ \
+			BitSet(dso_scope.debounced, (1 << (btn_flag_bit))); \
+			BitSet(dso_scope.btns_flags, (1 << (btn_flag_bit))); \
 		}
 void btns_update(void)
 {
-	if(BitTest(btns_flags, (1 << TB_FLAG_BIT))) {
-		dso_scope.tb_i = (dso_scope.tb_i + 1) % TIMEBASE_NR;
-		dso_scope.timebase = timebase = timebase_vals[dso_scope.tb_i];
-	} else 
-		timebase = 0;
+	/* If SEL button was pressed */
+	if(BitTest(dso_scope.btns_flags, (1 << SEL_BTN_BIT))) {
+		dso_scope.btn_selected = ( dso_scope.btn_selected + 1 ) % 3;
+		BitClr(dso_scope.btns_flags, (1 << SEL_BTN_BIT));
+	}
+
+	/* If PLUS button was pressed */
+	if(BitTest(dso_scope.btns_flags, (1 << PLUS_BTN_BIT))) {
+		switch(dso_scope.btn_selected) {
+			case tb:
+				/* Increase timebase */
+				dso_scope.tb_i = (dso_scope.tb_i + 1) % TIMEBASE_NR;
+				dso_scope.timebase = timebase_vals[dso_scope.tb_i];
+				break;
+			case l_cursor:
+				/* Move waveform upwards */
+				wave.midpoint -= 10;
+				break;
+			case r_cursor:
+				/* Increase trigger level */
+				dso_scope.trig_lvl_adc += 100;
+				break;
+		} 
+		if(dso_scope.btn_selected != tb)
+			BitClr(dso_scope.btns_flags, (1 << PLUS_BTN_BIT));
+	}
+	
+	/* If MINUS button was pressed */
+	if(BitTest(dso_scope.btns_flags, (1 << MINUS_BTN_BIT))) {
+		switch(dso_scope.btn_selected) {
+			case tb:
+				/* Decrease timebase */
+				if(!dso_scope.tb_i)
+					dso_scope.tb_i = TIMEBASE_NR;
+				--dso_scope.tb_i;
+
+				dso_scope.timebase = timebase_vals[dso_scope.tb_i];
+				break;
+			case l_cursor:
+				/* Move waveform downwards */
+				wave.midpoint += 10;
+				break;
+			case r_cursor:
+				/* Decrease trigger lvl */
+				dso_scope.trig_lvl_adc -= 100;
+				break;
+		}
+		if(dso_scope.btn_selected != tb)
+			BitClr(dso_scope.btns_flags, (1 << MINUS_BTN_BIT));
+	}
 }
 
-U8 read_btns(void) {
+void read_btns(void) {
 
-	CHECK_BTN(PLUS_BTN_BIT, PLUS_BTN_PIN);
-	CHECK_BTN(MINUS_BTN_BIT, MINUS_BTN_PIN);
-	CHECK_BTN(SEL_BTN_BIT, SEL_BTN_PIN);
+	CHECK_BTN(PLUS_BTN_BIT, PLUS_BTN_PIN)
+	CHECK_BTN(MINUS_BTN_BIT, MINUS_BTN_PIN)
+	CHECK_BTN(SEL_BTN_BIT, SEL_BTN_PIN)
 
-	update_btns();
-	if(BitTest(btns_flags, (1 << TB_FLAG_BIT))) {
-			dso_scope.tb_i = (dso_scope.tb_i + 1) % TIMEBASE_NR;
-			dso_scope.timebase = timebase = timebase_vals[dso_scope.tb_i];
-		} else 
-			timebase = 0;
-
-	return btns_flags;
+	btns_update();
 }
 
 /*
@@ -407,11 +445,15 @@ void timebase_display(U16 timebase)
 	clr_blk(WD_OFFSETX, 2, 5 * 8, 12);
 	if(timebase >= 1000){
 		PutsGenic(WD_OFFSETX + 8, 2, (U8 *)" ms", clGreen, clBlack, &ASC8X16);
-		PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(timebase / 1000, buf, 10), clGreen, clBlack, &ASC8X16);
+		PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(dso_scope.timebase / 1000, buf, 10), SELECTED_CL, clBlack, &ASC8X16);
 	} else {
 		PutsGenic(WD_OFFSETX + 17, 2, (U8 *)" us", clGreen, clBlack, &ASC8X16);
-		PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(timebase, buf, 10), clGreen, clBlack, &ASC8X16);	
+		PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(dso_scope.timebase, buf, 10), SELECTED_CL, clBlack, &ASC8X16);	
 	}
+
+	BitClr(dso_scope.btns_flags, (1 << PLUS_BTN_BIT));
+	BitClr(dso_scope.btns_flags, (1 << MINUS_BTN_BIT));
+	
 }
 
 void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U16 bg_clr)

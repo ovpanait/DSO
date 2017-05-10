@@ -31,11 +31,20 @@
 #define PLUS_BTN_PIN		GPIO_Pin_14
 #define PLUS_BTN_BIT		0
 
-#define MINUS_BTN_PIN		GPIO_Pin_15
+#define MINUS_BTN_PIN		GPIO_Pin_13
 #define MINUS_BTN_BIT		1
 
-#define SEL_BTN_PIN		GPIO_Pin_13
+#define SEL_BTN_PIN		GPIO_Pin_12
 #define SEL_BTN_BIT		2
+
+#define OK_BTN_BIT		3
+#define OK_BTN_PIN		GPIO_Pin 15
+
+typedef enum {
+	l_cursor = 0,
+	r_cursor,
+	tb
+} selected;
 
 /* Timebase */
 #define TIMEBASE_NR		8 /* Number of existing timebases */
@@ -61,7 +70,7 @@ struct scope {
 	__IO U16 rt_timer ;
 
 	/* Timebase */
-	__IO U8 tb_i;
+	__IO S8 tb_i;
 	__IO U16 timebase;
 
 	/* Interrupt flags */
@@ -80,6 +89,7 @@ struct scope {
 	/* Buttons */
 	U8 debounced;
 	U8 btns_flags;
+	U8 btn_selected;
 };
 
 /* Display functions */
@@ -104,5 +114,8 @@ void sampling_enable(void);
 void fill_display_buf(void);
 
 /* Buttons */
-U8 read_btns(void);
+void read_btns(void);
+void btns_update(void);
+U8 check_btn(GPIO_TypeDef* GPIOx, U16 GPIO_pin, U8 state);
+
 #endif
