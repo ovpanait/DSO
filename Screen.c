@@ -14,6 +14,7 @@ extern struct waveform wave;
 //
 
 static U8 buf[10];
+static U8 freq_delay = 15;
 
 #define	ASC8X16_Use_Display_Char_Only
 const U8 Font_ASC8X16[256*16] = {
@@ -520,6 +521,10 @@ void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U
 	PutsGenic(posx + label_s * CHAR_WID, posy, v_buf, text_clr, bg_clr, &ASC8X16);
 }
 
+#define 	ASSIGN_POS(x, y , cond) \
+			if((cond) > 0) \
+				(x) = (y);
+
 /* TODO: Fix freq calcualtion for frequencies < 1 Khz */
 void freq_display(double freq)
 {
@@ -531,21 +536,21 @@ void freq_display(double freq)
 	}
 	U32 frq_int = freq * 100; /* Precision of two */
 
+	itoa(frq_int, buf, 10);
+	uputs(buf, USART1);
+	UartPutc('\n', USART1);
+
 	U8 dig_buf[7];
 	get_digits(frq_int, dig_buf);
-	U8 dig_ind = strlen(dig_buf);
+	S8 dig_ind = strlen(dig_buf);
 
-	U8 f_buf[9] = { 0, 0, '.', 0, 0, 'K', 'H', 'z', '\0'};
+	U8 f_buf[9] = { '0', '0', '.', '0', '0', 'K', 'H', 'z', '\0'};
 
 	U8 *ptr = f_buf;
-	f_buf[4] = dig_buf[0]; --dig_ind;
-	f_buf[3] = dig_buf[1]; --dig_ind;
-	f_buf[1] = dig_buf[2]; --dig_ind;
-	if(dig_ind)
-		f_buf[0] = dig_buf[3];
-	else 
-		++ptr;
-	//uputs("Debug", USART1);
+	ASSIGN_POS(f_buf[4], dig_buf[0], dig_ind);
+	ASSIGN_POS(f_buf[3], dig_buf[1], --dig_ind);
+	ASSIGN_POS(f_buf[1], dig_buf[2], --dig_ind);
+	ASSIGN_POS(f_buf[0], dig_buf[3], --dig_ind);
 
 	PutsGenic(FREQ_OFFSETX + 5 * CHAR_WID, FREQ_OFFSETY, ptr, TEXT_CL, BG_CL, &ASC8X16);
 }
@@ -563,6 +568,9 @@ void info_display(void)
 	cursor_display(CURSOR_RIGHTX, wave.midpoint - GET_SAMPLE(dso_scope.trig_lvl_adc) - 6, '<', 						      				(dso_scope.btn_selected == r_cursor) ? SELECTED_CL : CURSOR_RIGHT_CL);
 
 	/* Display frequency */
-	freq_display(wave.frequency);
+	if(!(--freq_delay)) {
+		freq_display(wave.frequency);
+		freq_delay = FREQ_DELAY;
+	}
 }
 

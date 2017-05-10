@@ -56,6 +56,7 @@ typedef enum {
 
 /* Frequency */
 #define GET_FREQ(freq_cnt)	(1000000.0 / (((U32)dso_scope.timebase * 12000 / SAMPLES_NR) * (freq_cnt)))
+#define FREQ_DELAY		15
 
 struct waveform {
 	__IO U16 tmp_buf[SAMPLES_NR];

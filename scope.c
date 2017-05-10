@@ -11,7 +11,7 @@ struct scope dso_scope;
 struct waveform wave;
 
 __IO U16 timebase_vals[] = { 10, 20, 50, 100, 200, 500, 1000, 5000 };
-__IO U16 timebase_pres[] = { 116, 115, 144, 288, 576, 1440, 2880, 7220 }; /* Timer prescaler 72Mhz */
+__IO U16 timebase_pres[] = { 116, 115, 144, 288, 576, 1440, 2880, 14524 }; /* Timer prescaler 72Mhz */
 
 /* Global peripheral initializers */
 __IO TIM_TimeBaseInitTypeDef TIM3_struct;
