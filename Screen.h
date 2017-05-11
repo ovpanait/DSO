@@ -110,6 +110,12 @@ typedef struct {
 #define CURSOR_RIGHT_CL			clAqua
 #define CURSOR_RIGHTX			WD_OFFSETX + WD_WIDTH
 
+/* SINGLE mode */
+#define SINGLES_OFFSETX			50
+#define SINGLES_OFFSETY			ScreenYsize - WD_OFFSETY + 4
+#define SINGLES_DEAC_CL			clWhite
+#define SINGLES_ACT_CL			clGreen
+
 #define SELECTED_CL			clHotpink
 
 extern	FONT ASC8X16;

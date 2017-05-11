@@ -38,17 +38,24 @@
 #define SEL_BTN_BIT		2
 
 #define OK_BTN_BIT		3
-#define OK_BTN_PIN		GPIO_Pin 15
+#define OK_BTN_PIN		GPIO_Pin_15
 
 #define TB_BIT			4
 #define LCURSOR_BIT		5
 #define RCURSOR_BIT		6
+
 #define SINGLES_BIT		7
+#define ANALYZING_BIT		8
+#define SS_STARTED_BIT		9
+#define SS_CAPTURED_BIT		10
+
+#define SEL_NR			4
 
 typedef enum {
 	l_cursor = 0,
 	r_cursor,
-	tb
+	tb,
+	mode
 } selected;
 
 /* Timebase */
@@ -93,9 +100,9 @@ struct scope {
 	U16 prev_cal_samp; 		/* Previous sample */
 
 	/* Buttons */
-	U8 debounced;
-	U8 btns_flags;
-	U8 btn_selected;
+	__IO U8 debounced;
+	__IO U16 btns_flags;
+	__IO U8 btn_selected;
 };
 
 /* Display functions */

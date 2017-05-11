@@ -64,6 +64,18 @@ void waveform_init(void)
 
 void waveform_display(void)
 {
+	if(BitTest(dso_scope.btns_flags, (1 << SINGLES_BIT)))
+		if(!BitTest(dso_scope.btns_flags, (1 << SS_CAPTURED_BIT)))
+			return;
+		else {
+			if(BitTest(dso_scope.btns_flags, (1 << ANALYZING_BIT))) {
+				/* Coursor */
+				return;
+			}
+			else 
+				BitSet(dso_scope.btns_flags, (1 << ANALYZING_BIT));
+		}
+
 	U16 prev_val, current_val;
 	U16 wave_per = 1; /* The first trigger is the one that started the samping */
 	U16 freq_cnt = 0;
@@ -133,6 +145,7 @@ void waveform_display(void)
 		wave.frequency = freq_avg;
 	else 
 		wave.frequency = 0;
+
 }
 	
 /* *
@@ -177,9 +190,28 @@ U8 check_btn(GPIO_TypeDef* GPIOx, U16 GPIO_pin, U8 state){
 		}
 void btns_update(void)
 {
+	/* If OK button was pressed */
+	if(BitTest(dso_scope.btns_flags, (1 << OK_BTN_BIT))) {
+		if(!BitTest(dso_scope.btns_flags, (1 << SINGLES_BIT))) {
+			PutsGenic(SINGLES_OFFSETX, SINGLES_OFFSETY, (U8 *)"SINGLE", SINGLES_ACT_CL, clBlack, &ASC8X16);
+			/* Clear old waveform  and display grid*/
+			FillRect(WD_OFFSETX, wave.midpoint - GET_SAMPLE(wave.max) - 10, WD_WIDTH, GET_SAMPLE((wave.max - wave.min)) + 3 + 20, BG_CL);
+			grid_display();
+			BitSet(dso_scope.btns_flags, (1 << SINGLES_BIT));
+		} else {
+			PutsGenic(SINGLES_OFFSETX, SINGLES_OFFSETY, (U8 *)"SINGLE", SINGLES_DEAC_CL, clBlack, &ASC8X16);
+			BitClr(dso_scope.btns_flags, (1 << SINGLES_BIT));
+			BitClr(dso_scope.btns_flags, (1 << ANALYZING_BIT));
+			BitClr(dso_scope.btns_flags, (1 << SS_CAPTURED_BIT));
+			BitClr(dso_scope.btns_flags, (1 << SS_STARTED_BIT));
+		}
+
+		BitClr(dso_scope.btns_flags, (1 << OK_BTN_BIT));
+	}
+
 	/* If SEL button was pressed */
 	if(BitTest(dso_scope.btns_flags, (1 << SEL_BTN_BIT))) {
-		dso_scope.btn_selected = ( dso_scope.btn_selected + 1 ) % 3;
+		dso_scope.btn_selected = ( dso_scope.btn_selected + 1 ) % SEL_NR;
 		BitClr(dso_scope.btns_flags, (1 << SEL_BTN_BIT));
 		BitSet(dso_scope.btns_flags, (1 << TB_BIT));
 	}
@@ -236,9 +268,10 @@ void btns_update(void)
 
 void read_btns(void) {
 
-	CHECK_BTN(PLUS_BTN_BIT, PLUS_BTN_PIN)
-	CHECK_BTN(MINUS_BTN_BIT, MINUS_BTN_PIN)
-	CHECK_BTN(SEL_BTN_BIT, SEL_BTN_PIN)
+	CHECK_BTN(PLUS_BTN_BIT, PLUS_BTN_PIN);
+	CHECK_BTN(MINUS_BTN_BIT, MINUS_BTN_PIN);
+	CHECK_BTN(SEL_BTN_BIT, SEL_BTN_PIN);
+	CHECK_BTN(OK_BTN_BIT, OK_BTN_PIN);
 
 	btns_update();
 }
@@ -410,14 +443,25 @@ void sampling_config(void)
 
 void sampling_enable(void)
 {
-	dso_scope.done_sampling = 0;
 	dso_scope.done_displaying = 0;
+	dso_scope.done_sampling = 0;
+
+	if(BitTest(dso_scope.btns_flags, (1 << SINGLES_BIT))) {
+		dso_scope.done_sampling = 1;
+		if(BitTest(dso_scope.btns_flags, (1 << SS_STARTED_BIT)))
+			return;
+		else {
+			BitSet(dso_scope.btns_flags, (1 << SS_STARTED_BIT));
+			
+		}
+	}
+
 	dso_scope.avg_total = 32;
 	dso_scope.prev_cal_samp = ADC_MAX;
 	dso_scope.test_timer = dso_scope.timebase / 2;	
-	
+
 	/* 10us and 20us special handling */
-	/* Sample only half the total amount */
+	/* Sample only a half/quarter of the total amount */
 	if(dso_scope.timebase == 20) {
 		DMA_struct.DMA_BufferSize = SAMPLES_NR / 2;
 		DMA_Init(DMA1_Channel1, &DMA_struct);

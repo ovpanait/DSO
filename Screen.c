@@ -494,7 +494,7 @@ void timebase_display(U16 flag)
 	
 }
 
-
+/* Display a voltage */
 void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U16 bg_clr)
 {
 	U16 voltage = ( adc_val * 0.8);
@@ -525,7 +525,6 @@ void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U
 			if((cond) > 0) \
 				(x) = (y);
 
-/* TODO: Fix freq calcualtion for frequencies < 1 Khz */
 void freq_display(double freq)
 {
 	clr_blk(FREQ_OFFSETX, FREQ_OFFSETY, FREQ_SIZE, 16);
@@ -535,10 +534,6 @@ void freq_display(double freq)
 		return;
 	}
 	U32 frq_int = freq * 100; /* Precision of two */
-
-	itoa(frq_int, buf, 10);
-	uputs(buf, USART1);
-	UartPutc('\n', USART1);
 
 	U8 dig_buf[7];
 	get_digits(frq_int, dig_buf);

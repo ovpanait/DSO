@@ -181,6 +181,7 @@ void DMA1_Channel1_IRQHandler(void)
 {
 	/* Test on DMA Stream Transfer Complete interrupt */
 	if(DMA_GetITStatus(DMA_IT_TC)) {
+
 	/* Clear DMA Transfer Complete interrupt pending bit */
 	DMA_ClearITPendingBit(DMA_IT_TC);
 
@@ -213,6 +214,11 @@ void DMA1_Channel1_IRQHandler(void)
 				wave.avg_buf[i] = wave.tmp_buf[i];
 			else 
 				wave.avg_buf[i] = (wave.avg_buf[i] + wave.tmp_buf[i]) / 2;
+	}
+
+	if(BitTest(dso_scope.btns_flags, (1 << SINGLES_BIT))){
+		BitSet(dso_scope.btns_flags, (1 << SS_CAPTURED_BIT));
+		return;
 	}
 
 	if(dso_scope.avg_flag)
@@ -283,6 +289,10 @@ void ADC1_2_IRQHandler(void)
 
 	} else {
 		dso_scope.prev_cal_samp = ADC1->DR;
+		
+		/* Continue sampling in single shot mode until a trigger occurrs */
+		if(BitTest(dso_scope.btns_flags, (1 << SINGLES_BIT)))
+			return;
 
 		if(dso_scope.rt_timer) {
 			//uputs("Debugging", USART1);
