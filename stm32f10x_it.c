@@ -325,4 +325,20 @@ void ADC1_2_IRQHandler(void)
 	}
 }
 
+void USART1_IRQHandler(void)
+{
+  if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+  {
+	if(dso_scope.RX_flag == RESEND) {
+		UartPutc(RESEND, USART1);
+		return;
+	}
+
+	U8 received = USART_ReceiveData(USART1);
+	dso_scope.RX_command = received;
+	UartPutc(ACK, USART1);
+	dso_scope.RX_flag = RESEND;
+  }
+}
+
 /******************* (C) COPYRIGHT 2010 STMicroelectronics *****END OF FILE****/

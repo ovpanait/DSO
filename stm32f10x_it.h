@@ -44,6 +44,7 @@ void DMA1_Channel1_IRQHandler(void);
 /*void TIM4_IRQHandler(void);*/
 void TIM3_IRQHandler(void);
 void ADC1_2_IRQHandler(void);
+void USART1_IRQHandler(void);
 
 #endif /* __STM32F10x_IT_H */
 

@@ -70,7 +70,7 @@ int main (void)
 		waveform_display();
 		info_display();
 		//for(int i = 0 ; i < ; i++)
-			Delay(25000);
+			Delay(35000);
 		dso_scope.done_displaying = 1;
 	}
 }	

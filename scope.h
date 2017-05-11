@@ -65,6 +65,20 @@ typedef enum {
 #define GET_FREQ(freq_cnt)	(1000000.0 / (((U32)dso_scope.timebase * 12000 / SAMPLES_NR) * (freq_cnt)))
 #define FREQ_DELAY		15
 
+/* USART Flags */
+#define ACK			0x01
+#define NEED_ACK		0x02
+#define	RESEND			0x03
+#define RX_DONE 		0x04
+#define RX_WAITING		0x05
+
+/* USART Commands */
+#define SERIAL_SEL		0x04
+#define SERIAL_PLUS		0x05
+#define SERIAL_MINUS		0x06
+#define SERIAL_SINGLE		0x07
+#define SERIAL_SEND_WF		0x08
+
 struct waveform {
 	__IO U16 tmp_buf[SAMPLES_NR];
 	__IO U16 avg_buf[SAMPLES_NR];
@@ -78,6 +92,10 @@ struct waveform {
 };
 
 struct scope {
+	/* USART1 receive buffer */
+	__IO U16 RX_command;
+	__IO U8 RX_flag;
+
 	/* Real-time/Trigger mode */
 	__IO U8 rt_mode;
 	__IO U16 rt_timer ;
@@ -127,5 +145,8 @@ void fill_display_buf(void);
 void read_btns(void);
 void btns_update(void);
 U8 check_btn(GPIO_TypeDef* GPIOx, U16 GPIO_pin, U8 state);
+
+/* USART1 */
+void USART1_set_flags(void);
 
 #endif

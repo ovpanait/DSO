@@ -268,10 +268,13 @@ void btns_update(void)
 
 void read_btns(void) {
 
-	CHECK_BTN(PLUS_BTN_BIT, PLUS_BTN_PIN);
-	CHECK_BTN(MINUS_BTN_BIT, MINUS_BTN_PIN);
-	CHECK_BTN(SEL_BTN_BIT, SEL_BTN_PIN);
-	CHECK_BTN(OK_BTN_BIT, OK_BTN_PIN);
+	if(dso_scope.RX_flag == RX_WAITING) {
+		CHECK_BTN(PLUS_BTN_BIT, PLUS_BTN_PIN);
+		CHECK_BTN(MINUS_BTN_BIT, MINUS_BTN_PIN);
+		CHECK_BTN(SEL_BTN_BIT, SEL_BTN_PIN);
+		CHECK_BTN(OK_BTN_BIT, OK_BTN_PIN);
+	} else 
+		USART1_set_flags();
 
 	btns_update();
 }
@@ -414,6 +417,13 @@ void NVIC_Configuration(void)
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 
+	/* USART1 */
+	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+
 }
  
 /**************************************************************************************/
@@ -450,10 +460,8 @@ void sampling_enable(void)
 		dso_scope.done_sampling = 1;
 		if(BitTest(dso_scope.btns_flags, (1 << SS_STARTED_BIT)))
 			return;
-		else {
+		else
 			BitSet(dso_scope.btns_flags, (1 << SS_STARTED_BIT));
-			
-		}
 	}
 
 	dso_scope.avg_total = 32;
@@ -499,3 +507,22 @@ void get_digits(U32 n, U8 *dig_buf)
 	*dig_buf = '\0';
 }
 
+void USART1_set_flags(void)
+{
+	switch(dso_scope.RX_command) {
+	case SERIAL_SEL:
+		BitSet(dso_scope.btns_flags, (1 << SEL_BTN_BIT));
+		break;
+	case SERIAL_SINGLE:
+		BitSet(dso_scope.btns_flags, (1 << OK_BTN_BIT));
+		break;
+	case SERIAL_PLUS:
+		BitSet(dso_scope.btns_flags, (1 << PLUS_BTN_BIT));
+		break;
+	case SERIAL_MINUS:
+		BitSet(dso_scope.btns_flags, (1 << MINUS_BTN_BIT));
+		break;
+	}
+
+	dso_scope.RX_flag = RX_WAITING;
+}
