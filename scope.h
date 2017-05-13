@@ -49,13 +49,12 @@
 #define SS_STARTED_BIT		9
 #define SS_CAPTURED_BIT		10
 
-#define SEL_NR			4
+#define SEL_NR			3
 
 typedef enum {
 	l_cursor = 0,
 	r_cursor,
-	tb,
-	mode
+	tb
 } selected;
 
 /* Timebase */

@@ -20,7 +20,9 @@ typedef	signed long		S32;
 #define	BitAnd(word, bit_mask)		((word) &= (bit_mask))
 #define	BitOr(word, bit_mask)		((word) |= (bit_mask))
 #define	BitXor(word, bit_mask)		((word) ^= (bit_mask))
-
+#define BitClrIfSet(word, bit_mask)	(((word) & (bit_mask)) \
+						? BitClr((word), (bit_mask)), 1 \
+						: 0)						
 #define	Port_BitSet(port, bit_mask) 	(port->BSRR = bit_mask)
 #define	Port_BitClr(port, bit_mask) 	(port->BRR = bit_mask)
 

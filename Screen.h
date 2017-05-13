@@ -116,7 +116,8 @@ typedef struct {
 #define SINGLES_DEAC_CL			clWhite
 #define SINGLES_ACT_CL			clGreen
 
-#define SELECTED_CL			clHotpink
+#define SELECTED_CL			clHotpink	
+#define WF_CURSOR_CL			clHotPink
 
 extern	FONT ASC8X16;
 

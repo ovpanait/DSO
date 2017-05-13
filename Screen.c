@@ -464,11 +464,8 @@ void grid_display(void)
 /* Display coursor */
 void cursor_display(U16 posx, U16 posy, U8 cursor_type, U16 cursor_cl)
 {
-	if(BitTest(dso_scope.btns_flags, (1 << LCURSOR_BIT)) ||
-		BitTest(dso_scope.btns_flags, (1 << RCURSOR_BIT))) {
-		clr_blk(posx, posy - 10, 8, 16 + 20);
-		PutcGenic(posx, posy, cursor_type, cursor_cl, BG_CL, &ASC8X16);
-	}
+	clr_blk(posx, posy - 10, 8, 16 + 20);
+	PutcGenic(posx, posy, cursor_type, cursor_cl, BG_CL, &ASC8X16);
 }
 
 /* Display timebase */
@@ -494,7 +491,7 @@ void timebase_display(U16 flag)
 	
 }
 
-/* Display a voltage */
+/* Display any voltage */
 void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U16 bg_clr)
 {
 	U16 voltage = ( adc_val * 0.8);
@@ -521,6 +518,7 @@ void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U
 	PutsGenic(posx + label_s * CHAR_WID, posy, v_buf, text_clr, bg_clr, &ASC8X16);
 }
 
+/* Display the previously calculated frequency */
 #define 	ASSIGN_POS(x, y , cond) \
 			if((cond) > 0) \
 				(x) = (y);
@@ -557,10 +555,16 @@ void info_display(void)
 	voltage_display(PPV_OFFSETX, PPV_OFFSETY, (U8 *)"Vpp:", (wave.max - wave.min + NOISE_MARGIN), TEXT_CL, BG_CL);
 	/* Update max voltage */
 	voltage_display(MAXV_OFFSETX, MAXV_OFFSETY, (U8 *)"Vmax:", (wave.max + NOISE_MARGIN), TEXT_CL, BG_CL);
+
 	/* Display cursors */
-	cursor_display(CURSOR_LEFTX, wave.midpoint - 7, '>', 
+	if(BitClrIfSet(dso_scope.btns_flags, (1 << LCURSOR_BIT)) || 
+			BitClrIfSet(dso_scope.btns_flags, (1 << RCURSOR_BIT))) {
+		cursor_display(CURSOR_LEFTX, wave.midpoint - 7, '>', 
 			(dso_scope.btn_selected == l_cursor) ? SELECTED_CL : CURSOR_LEFT_CL);
-	cursor_display(CURSOR_RIGHTX, wave.midpoint - GET_SAMPLE(dso_scope.trig_lvl_adc) - 6, '<', 						      				(dso_scope.btn_selected == r_cursor) ? SELECTED_CL : CURSOR_RIGHT_CL);
+
+		cursor_display(CURSOR_RIGHTX, wave.midpoint - GET_SAMPLE(dso_scope.trig_lvl_adc) - 6, '<', 
+			(dso_scope.btn_selected == r_cursor) ? SELECTED_CL : CURSOR_RIGHT_CL);
+	}
 
 	/* Display frequency */
 	if(!(--freq_delay)) {
