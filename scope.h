@@ -78,6 +78,7 @@ typedef enum {
 #define SERIAL_MINUS		0x06
 #define SERIAL_SINGLE		0x07
 #define SERIAL_SEND_WF		0x08
+#define WF_SENDING		0x09
 
 struct waveform {
 	__IO U16 tmp_buf[SAMPLES_NR];

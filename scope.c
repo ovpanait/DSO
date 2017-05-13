@@ -42,10 +42,15 @@ void scope_init(void)
 	
 	/* Buttons */
 	dso_scope.debounced = 0;
+	dso_scope.btns_flags = 0;
 	BitSet(dso_scope.btns_flags, (1 << LCURSOR_BIT));
 	BitSet(dso_scope.btns_flags, (1 << RCURSOR_BIT));
 	BitSet(dso_scope.btns_flags, (1 << TB_BIT));
 	dso_scope.btn_selected = tb;
+	
+	/* USART1 */
+	dso_scope.RX_flag = RX_WAITING;
+	dso_scope.RX_command = 0;
 }
 
 void waveform_init(void) 
@@ -190,6 +195,20 @@ U8 check_btn(GPIO_TypeDef* GPIOx, U16 GPIO_pin, U8 state){
 		}
 void btns_update(void)
 {
+	/* Test for waveform retrieve */
+	if(BitTest(dso_scope.btns_flags, (1 << SS_CAPTURED_BIT)) && dso_scope.RX_command == SERIAL_SEND_WF) {
+		/* Send timebase */
+		uputU16(dso_scope.timebase, USART1);
+
+		/* Send samples */
+		for(U16 i=0; i < SAMPLES_NR; ++i) 
+			uputU16(wave.display_buf[i], USART1);
+		
+		/* Reset flags */	
+		dso_scope.RX_flag = RX_WAITING;
+		dso_scope.RX_command = 0;
+	}
+ 
 	/* If OK button was pressed */
 	if(BitTest(dso_scope.btns_flags, (1 << OK_BTN_BIT))) {
 		if(!BitTest(dso_scope.btns_flags, (1 << SINGLES_BIT))) {
@@ -267,7 +286,6 @@ void btns_update(void)
 }
 
 void read_btns(void) {
-
 	if(dso_scope.RX_flag == RX_WAITING) {
 		CHECK_BTN(PLUS_BTN_BIT, PLUS_BTN_PIN);
 		CHECK_BTN(MINUS_BTN_BIT, MINUS_BTN_PIN);
@@ -277,6 +295,28 @@ void read_btns(void) {
 		USART1_set_flags();
 
 	btns_update();
+}
+
+void USART1_set_flags(void)
+{
+	switch(dso_scope.RX_command) {
+	case SERIAL_SEL:
+		BitSet(dso_scope.btns_flags, (1 << SEL_BTN_BIT));
+		break;
+	case SERIAL_SINGLE:
+		BitSet(dso_scope.btns_flags, (1 << OK_BTN_BIT));
+		break;
+	case SERIAL_PLUS:
+		BitSet(dso_scope.btns_flags, (1 << PLUS_BTN_BIT));
+		break;
+	case SERIAL_MINUS:
+		BitSet(dso_scope.btns_flags, (1 << MINUS_BTN_BIT));
+		break;
+	case SERIAL_SEND_WF:
+		return;
+	}
+
+	dso_scope.RX_flag = RX_WAITING;
 }
 
 /*
@@ -507,22 +547,3 @@ void get_digits(U32 n, U8 *dig_buf)
 	*dig_buf = '\0';
 }
 
-void USART1_set_flags(void)
-{
-	switch(dso_scope.RX_command) {
-	case SERIAL_SEL:
-		BitSet(dso_scope.btns_flags, (1 << SEL_BTN_BIT));
-		break;
-	case SERIAL_SINGLE:
-		BitSet(dso_scope.btns_flags, (1 << OK_BTN_BIT));
-		break;
-	case SERIAL_PLUS:
-		BitSet(dso_scope.btns_flags, (1 << PLUS_BTN_BIT));
-		break;
-	case SERIAL_MINUS:
-		BitSet(dso_scope.btns_flags, (1 << MINUS_BTN_BIT));
-		break;
-	}
-
-	dso_scope.RX_flag = RX_WAITING;
-}

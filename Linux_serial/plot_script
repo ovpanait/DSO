@@ -1,0 +1,24 @@
+set datafile sep '\t'
+
+set title 'Forma de unda'                       # plot title
+set xlabel 'Timp(us)'                              # x-axis label
+set ylabel 'Tensiune(mV)'                          # y-axis label
+
+#range 
+set yrange [-100:3500]
+
+#grid
+set grid
+
+# key/legend
+set key top right
+set key box
+set key left bottom
+set key bmargin 
+
+
+set nokey     # no key
+
+plot "plot.dat" with lines smooth unique
+
+

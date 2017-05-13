@@ -327,8 +327,7 @@ void ADC1_2_IRQHandler(void)
 
 void USART1_IRQHandler(void)
 {
-  if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
-  {
+  if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET) {
 	if(dso_scope.RX_flag == RESEND) {
 		UartPutc(RESEND, USART1);
 		return;
@@ -336,7 +335,12 @@ void USART1_IRQHandler(void)
 
 	U8 received = USART_ReceiveData(USART1);
 	dso_scope.RX_command = received;
-	UartPutc(ACK, USART1);
+
+	if(received == SERIAL_SEND_WF)
+		UartPutc(WF_SENDING, USART1);
+	else	
+		UartPutc(ACK, USART1);
+
 	dso_scope.RX_flag = RESEND;
   }
 }
