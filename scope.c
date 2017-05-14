@@ -183,8 +183,46 @@ void tvc_label_display(void)
 {
 	voltage_display(TVC_LABEL_OFFSETX, TVC_LABEL_OFFSETY, (U8 *)"Voltage:", 
 				wave.display_buf[dso_scope.tvc_x], clWhite, clBlack);
+	tvc_time_display(dso_scope.tvc_x);
 }
+	
+void tvc_time_display(U16 tvc_x)
+{
+	clr_blk(TVC_LABEL_OFFSETX, TVC_LABEL_OFFSETY + 18, 15 * CHAR_WID, 16);
+	U8 t_buf[20];
+	U8 *buf_ptr = t_buf;
 
+	double samp_us = tvc_x * (12.0 * (double)dso_scope.timebase / SAMPLES_NR);
+	
+	U16 int_part = samp_us;
+	do {
+		*buf_ptr = (int_part % 10) + '0';
+		int_part /= 10;
+		++buf_ptr;
+	} while(int_part);
+
+	U8 size = (buf_ptr - t_buf) / sizeof(char);
+	for(U8 i = 0; i < size / 2; ++i) {
+		U8 tmp = t_buf[i];
+		t_buf[i] = t_buf[size - 1 - i];
+		t_buf[size - 1 - i] = tmp;
+	}
+
+	*buf_ptr++ = '.';
+
+	for(U8 i = 0; i < 3; ++i) {
+		samp_us *= 10;
+		*buf_ptr++ = ((U16)samp_us % 10) + '0';
+	}
+	
+	*buf_ptr++ = 'u';
+	*buf_ptr++ = 's';
+	*buf_ptr = '\0';
+	
+	PutsGenic(TVC_LABEL_OFFSETX, TVC_LABEL_OFFSETY + 18, (U8 *)"Time:", clWhite, clBlack, &ASC8X16);
+	PutsGenic(TVC_LABEL_OFFSETX + 5 * CHAR_WID, TVC_LABEL_OFFSETY + 18, t_buf, clWhite, clBlack, &ASC8X16);
+}
+	
 U16 tvc_update(void)
 {
 	if(BitTest(dso_scope.tvc_flags, (1 << TVC_PLUS_BIT))) {
@@ -198,7 +236,7 @@ U16 tvc_update(void)
 
 	if(BitTest(dso_scope.tvc_flags, (1 << TVC_MINUS_BIT))) {
 		BitClr(dso_scope.tvc_flags, (1 << TVC_MINUS_BIT));
-		if(dso_scope.tvc_x == 1)
+		if(dso_scope.tvc_x == 0)
 			return 0;
 		--dso_scope.tvc_x;
 		dso_scope.tvc_y = wave.midpoint - GET_SAMPLE(wave.display_buf[dso_scope.tvc_x]);
@@ -300,6 +338,7 @@ void btns_update(void)
 		} else {
 			PutsGenic(SINGLES_OFFSETX, SINGLES_OFFSETY, (U8 *)"SINGLE", SINGLES_DEAC_CL, clBlack, &ASC8X16);
 			clr_blk(WD_OFFSETX, WD_OFFSETY, WD_WIDTH, WD_HEIGHT);
+			clr_blk(TVC_LABEL_OFFSETX, TVC_LABEL_OFFSETY + 18, 15 * CHAR_WID, 16);;
 			grid_display();
 			BitClr(dso_scope.btns_flags, (1 << SINGLES_BIT));
 			BitClr(dso_scope.btns_flags, (1 << ANALYZING_BIT));

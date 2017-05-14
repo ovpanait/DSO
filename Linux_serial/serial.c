@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <termios.h>
 
-void wf_printf(FILE *plot_file, uint16_t *waveform, uint16_t size, uint16_t interval);
+void wf_printf(FILE *plot_file, uint16_t *waveform, uint16_t size, double interval);
 void plot_wf(void);
 
 int main(int argc, char *argv[])
@@ -74,11 +74,12 @@ int main(int argc, char *argv[])
 			}
 
 			uart_get16(fd, &tb_us);
+			printf("%d\n",tb_us);
 			get_waveform(fd, waveform);
 			
 			adc_arr_to_mv(waveform, MAXV, SAMPLES_NR);
-			//for(int i = 0; i < 300; i++)
-				//printf("%d\n", waveform[i]);
+			/*for(int i = 0; i < 300; i++)
+				printf("%d\n", waveform[i]);*/
 			wf_printf(plot_file, waveform, SAMPLES_NR, calc_samp_int(tb_us));
 			fclose(plot_file);
 			plot_wf();	
@@ -163,9 +164,9 @@ void get_waveform(int fd, uint16_t * waveform)
 	}
 }
 
-uint16_t calc_samp_int(uint16_t tb)
+double calc_samp_int(uint16_t tb)
 {
-	return (DIV_MULT * tb) / SAMPLES_NR;
+	return ((double)DIV_MULT * tb) / SAMPLES_NR;
 }
 
 uint16_t adc_to_mv(uint16_t adc_val, uint16_t mv_max)
@@ -179,10 +180,10 @@ uint16_t adc_arr_to_mv(uint16_t *arr, uint16_t mv_max, uint16_t size)
 		*(arr + i) = adc_to_mv(*(arr + i), mv_max);
 }
 
-void wf_printf(FILE *plot_file, uint16_t *waveform, uint16_t size, uint16_t interval)
+void wf_printf(FILE *plot_file, uint16_t *waveform, uint16_t size, double interval)
 {
 	for(uint16_t i = 0; i < size; ++i)
-		fprintf(plot_file, "%d\t%d\n", i * interval, waveform[i]);
+		fprintf(plot_file, "%f\t%d\n", i * interval, waveform[i]);
 }
 
 /* Plot waveform using gnuplot script */

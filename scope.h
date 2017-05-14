@@ -163,5 +163,6 @@ void USART1_set_flags(void);
 void tvc_display(U16 tvc_x, U16 tvc_y);
 U16 tvc_update(void);
 void tvc_label_display(void);
+void tvc_time_display(U16 tvc_x);
 
 #endif

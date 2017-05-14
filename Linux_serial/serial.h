@@ -31,7 +31,7 @@ void uart_get16(int fd, uint16_t *ptr);
 int open_serial_port(char* portname);
 int set_interface_attribs(int fd, int speed);
 uint16_t adc_to_mv(uint16_t adc_val, uint16_t mv_max);
-uint16_t calc_samp_int(uint16_t tb);
+double calc_samp_int(uint16_t tb);
 uint16_t adc_arr_to_mv(uint16_t *arr, uint16_t mv_max, uint16_t size);
 
 #endif
