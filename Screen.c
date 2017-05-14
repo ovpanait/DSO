@@ -477,13 +477,13 @@ void timebase_display(U16 flag)
 	U16 cl = (dso_scope.btn_selected == tb) ? SELECTED_CL : clGreen;
 	BitClr(dso_scope.btns_flags, (1 << TB_BIT));
 
-	clr_blk(WD_OFFSETX, 2, 5 * 8, 12);
+	clr_blk(TIMEBASE_OFFSETX, TIMEBASE_OFFSETY, 5 * 8, 12);
 	if(dso_scope.timebase >= 1000){
-		PutsGenic(WD_OFFSETX + 8, 2, (U8 *)" ms", cl, clBlack, &ASC8X16);
-		PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(dso_scope.timebase / 1000, buf, 10), cl, clBlack, &ASC8X16);
+		PutsGenic(TIMEBASE_OFFSETX + 8, TIMEBASE_OFFSETY, (U8 *)" ms", cl, clBlack, &ASC8X16);
+		PutsGenic(TIMEBASE_OFFSETX, TIMEBASE_OFFSETY, (U8 *)itoa(dso_scope.timebase / 1000, buf, 10), cl, clBlack, &ASC8X16);
 	} else {
-		PutsGenic(WD_OFFSETX + 17, 2, (U8 *)" us", cl, clBlack, &ASC8X16);
-		PutsGenic(WD_OFFSETX, 2, (U8 *)itoa(dso_scope.timebase, buf, 10), cl, clBlack, &ASC8X16);	
+		PutsGenic(TIMEBASE_OFFSETX + 17, TIMEBASE_OFFSETY, (U8 *)" us", cl, clBlack, &ASC8X16);
+		PutsGenic(TIMEBASE_OFFSETX, TIMEBASE_OFFSETY, (U8 *)itoa(dso_scope.timebase, buf, 10), cl, clBlack, &ASC8X16);	
 	}
 
 	BitClr(dso_scope.btns_flags, (1 << PLUS_BTN_BIT));

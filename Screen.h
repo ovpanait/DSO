@@ -86,21 +86,25 @@ typedef struct {
 /* Info bar */
 
 #define CHAR_WID			8
+
+/* Timebase */
 #define TIMEBASE_SIZE			5 * CHAR_WID
+#define TIMEBASE_OFFSETX		142
+#define TIMEBASE_OFFSETY		ScreenYsize - WD_OFFSETY + 4
 
 /* Peak-to-peak voltage */
 #define PPV_SIZE			9 * CHAR_WID
-#define PPV_OFFSETX			TIMEBASE_SIZE + WD_OFFSETX + 5
+#define PPV_OFFSETX			WD_OFFSETX + 5
 #define PPV_OFFSETY			2
 
 /* Max voltage */
-#define MAXV_OFFSETX			PPV_OFFSETX + PPV_SIZE + 5
+#define MAXV_OFFSETX			PPV_OFFSETX + PPV_SIZE + 20
 #define MAXV_OFFSETY			2
 #define MAXV_SIZE			9 * CHAR_WID
 
 /* Frequency */
 #define FREQ_SIZE			13 * CHAR_WID
-#define FREQ_OFFSETX			MAXV_OFFSETX + MAXV_SIZE + 10
+#define FREQ_OFFSETX			MAXV_OFFSETX + MAXV_SIZE + 30
 #define FREQ_OFFSETY			2
 
 /* Waveform */
