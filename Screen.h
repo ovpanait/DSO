@@ -4,6 +4,10 @@
 
 #include "Common.h"
 
+#define 	ASSIGN_POS(x, y , cond) \
+			if((cond) > 0) \
+				(x) = (y);
+
 // ------------ Display parameters -----------------------
 // Overall display parameters
 #define		ScreenX0 		0
@@ -116,8 +120,12 @@ typedef struct {
 #define SINGLES_DEAC_CL			clWhite
 #define SINGLES_ACT_CL			clGreen
 
-#define SELECTED_CL			clHotpink	
-#define WF_CURSOR_CL			clHotPink
+#define SELECTED_CL			clHotpink
+
+/* Time voltage cursor */	
+#define TVC_CL				clYellow
+#define TVC_LABEL_OFFSETX		200
+#define	TVC_LABEL_OFFSETY		ScreenYsize - 45
 
 extern	FONT ASC8X16;
 

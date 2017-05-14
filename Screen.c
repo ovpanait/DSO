@@ -496,22 +496,23 @@ void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U
 {
 	U16 voltage = ( adc_val * 0.8);
 	U16 label_s = strlen(label);
+	U8 *ptr = buf;
 
-	U8 v_buf[6];
-	v_buf[1] = '.';
-	v_buf[4] = 'V';
-	v_buf[5] = '\0';
+	U8 v_buf[6] = {'0', '.', '0', '0', 'V', '\0'};
 
-	itoa(voltage / 1000, buf, 10);
-	v_buf[0] = buf[0];
+	if(voltage > 0) {
+		itoa(voltage / 1000, buf, 10);
+		v_buf[0] = buf[0];
 
-	if(voltage > 1000)
-		voltage %= 1000;
-	voltage /= 10;
-	/* Fractional part */
-	itoa(voltage, buf, 10);
-	v_buf[2] = buf[0];
-	v_buf[3] = buf[1];
+		if(voltage > 1000)
+			voltage %= 1000;
+		voltage /= 10;
+
+		/* Fractional part */
+		itoa(voltage, buf, 10);
+		ASSIGN_POS(v_buf[2], buf[0], ptr++);
+		ASSIGN_POS(v_buf[3], buf[1], ptr);
+	}
 
 	/* Display */
 	PutsGenic(posx, posy, label, text_clr, bg_clr, &ASC8X16);
@@ -519,10 +520,6 @@ void voltage_display(U16 posx, U16 posy, U8 *label, U16 adc_val, U16 text_clr, U
 }
 
 /* Display the previously calculated frequency */
-#define 	ASSIGN_POS(x, y , cond) \
-			if((cond) > 0) \
-				(x) = (y);
-
 void freq_display(double freq)
 {
 	clr_blk(FREQ_OFFSETX, FREQ_OFFSETY, FREQ_SIZE, 16);

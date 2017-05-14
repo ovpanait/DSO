@@ -70,15 +70,21 @@ void waveform_init(void)
 void waveform_display(void)
 {
 	if(BitTest(dso_scope.btns_flags, (1 << SINGLES_BIT)))
-		if(!BitTest(dso_scope.btns_flags, (1 << SS_CAPTURED_BIT)))
-			return;
+		if(!BitTest(dso_scope.btns_flags, (1 << SS_CAPTURED_BIT))) 
+			return;	/* Wait for a trigger to happen. Keep the screen clear. */
 		else {
 			if(BitTest(dso_scope.btns_flags, (1 << ANALYZING_BIT))) {
-				/* Coursor */
+				if(tvc_update()) {
+					clr_blk(WD_OFFSETX, WD_OFFSETY, WD_WIDTH, WD_HEIGHT);
+					grid_display();
+					wf_display_only();
+					tvc_display(dso_scope.tvc_x, dso_scope.tvc_y);
+					tvc_label_display();
+				}
 				return;
 			}
 			else 
-				BitSet(dso_scope.btns_flags, (1 << ANALYZING_BIT));
+				BitSet(dso_scope.btns_flags, (1 << ANALYZING_BIT)); /* */
 		}
 
 	U16 prev_val, current_val;
@@ -151,8 +157,82 @@ void waveform_display(void)
 	else 
 		wave.frequency = 0;
 
+	if(BitTest(dso_scope.btns_flags, (1 << SS_CAPTURED_BIT))) {
+		dso_scope.tvc_x = SAMPLES_NR / 2;
+		dso_scope.tvc_y = midpoint - GET_SAMPLE(wave.display_buf[SAMPLES_NR / 2]);
+		tvc_display(dso_scope.tvc_x, dso_scope.tvc_y);
+		tvc_label_display();
+	}
+
 }
+
+void tvc_display(U16 tvc_x, U16 tvc_y)
+{
+	/* Error checking */
+	if(tvc_y > WD_HEIGHT || tvc_x > WD_WIDTH)
+		return;
+
+	/* Draw horizontal line */
+	FillRect(WD_OFFSETX, tvc_y, WD_WIDTH, 1, TVC_CL);
 	
+	/* Draw vertical line */
+	FillRect(WD_OFFSETX + tvc_x, WD_OFFSETY, 1, WD_HEIGHT, TVC_CL);
+}
+
+void tvc_label_display(void)
+{
+	voltage_display(TVC_LABEL_OFFSETX, TVC_LABEL_OFFSETY, (U8 *)"Voltage:", 
+				wave.display_buf[dso_scope.tvc_x], clWhite, clBlack);
+}
+
+U16 tvc_update(void)
+{
+	if(BitTest(dso_scope.tvc_flags, (1 << TVC_PLUS_BIT))) {
+		BitClr(dso_scope.tvc_flags, (1 << TVC_PLUS_BIT));
+		if(dso_scope.tvc_x == WD_WIDTH - 1)
+			return 0;
+		++dso_scope.tvc_x;
+		dso_scope.tvc_y = wave.midpoint - GET_SAMPLE(wave.display_buf[dso_scope.tvc_x]);
+		return 1;
+	}
+
+	if(BitTest(dso_scope.tvc_flags, (1 << TVC_MINUS_BIT))) {
+		BitClr(dso_scope.tvc_flags, (1 << TVC_MINUS_BIT));
+		if(dso_scope.tvc_x == 1)
+			return 0;
+		--dso_scope.tvc_x;
+		dso_scope.tvc_y = wave.midpoint - GET_SAMPLE(wave.display_buf[dso_scope.tvc_x]);
+		return 1;
+	}
+	
+	return 0;
+}
+
+void wf_display_only(void)
+{
+	U16 xpos = 10;
+	U16 i = 0, current_ypos = 0, prev_ypos = 0;
+	U16 current_val, prev_val;
+	S16 diff = 0;
+
+	for(; i < SAMPLES_NR; ++i, ++xpos) {
+		current_val = wave.display_buf[i];
+		current_ypos = GET_SAMPLE(current_val);
+		
+		/* Display sample accordingly */
+		diff = current_ypos - prev_ypos;
+		if(diff > 1 && diff <= WD_HEIGHT / 2 )
+			FillRect(xpos, wave.midpoint - current_ypos, 2, 2 + diff, WF_CL);
+		else if((diff < -1 && diff >= -(WD_HEIGHT / 2)))
+			FillRect(xpos, wave.midpoint - prev_ypos, 2, 2 - diff, WF_CL);
+		else
+			FillRect(xpos, wave.midpoint - current_ypos, 2, 2, WF_CL);
+
+		/* Update */
+		prev_ypos = current_ypos;
+		prev_val = current_val;
+	}
+}
 /* *
    * Buttons config 
    *
@@ -213,12 +293,14 @@ void btns_update(void)
 	if(BitTest(dso_scope.btns_flags, (1 << OK_BTN_BIT))) {
 		if(!BitTest(dso_scope.btns_flags, (1 << SINGLES_BIT))) {
 			PutsGenic(SINGLES_OFFSETX, SINGLES_OFFSETY, (U8 *)"SINGLE", SINGLES_ACT_CL, clBlack, &ASC8X16);
-			/* Clear old waveform  and display grid*/
+			/* Clear old waveform and display grid*/
 			FillRect(WD_OFFSETX, wave.midpoint - GET_SAMPLE(wave.max) - 10, WD_WIDTH, GET_SAMPLE((wave.max - wave.min)) + 3 + 20, BG_CL);
 			grid_display();
 			BitSet(dso_scope.btns_flags, (1 << SINGLES_BIT));
 		} else {
 			PutsGenic(SINGLES_OFFSETX, SINGLES_OFFSETY, (U8 *)"SINGLE", SINGLES_DEAC_CL, clBlack, &ASC8X16);
+			clr_blk(WD_OFFSETX, WD_OFFSETY, WD_WIDTH, WD_HEIGHT);
+			grid_display();
 			BitClr(dso_scope.btns_flags, (1 << SINGLES_BIT));
 			BitClr(dso_scope.btns_flags, (1 << ANALYZING_BIT));
 			BitClr(dso_scope.btns_flags, (1 << SS_CAPTURED_BIT));
@@ -244,50 +326,61 @@ void btns_update(void)
 
 	/* If PLUS button was pressed */
 	if(BitTest(dso_scope.btns_flags, (1 << PLUS_BTN_BIT))) {
-		switch(dso_scope.btn_selected) {
-			case tb:
-				/* Increase timebase */
-				BitSet(dso_scope.btns_flags, (1 << TB_BIT));
-				dso_scope.tb_i = (dso_scope.tb_i + 1) % TIMEBASE_NR;
-				dso_scope.timebase = timebase_vals[dso_scope.tb_i];
-				break;
-			case l_cursor:
-				/* Move waveform upwards */
-				BitSet(dso_scope.btns_flags, (1 << LCURSOR_BIT));
-				wave.midpoint -= 10;
-				break;
-			case r_cursor:
-				/* Increase trigger level */
-				BitSet(dso_scope.btns_flags, (1 << RCURSOR_BIT));
-				dso_scope.trig_lvl_adc += 100;
-				break;
-		} 
+		/* Check single-shot mode */
+		if(BitTest(dso_scope.btns_flags, (1 << ANALYZING_BIT))) {
+			BitSet(dso_scope.tvc_flags, (1 << TVC_PLUS_BIT));
+		} else {
+			switch(dso_scope.btn_selected) {
+				case tb:
+					/* Increase timebase */
+					BitSet(dso_scope.btns_flags, (1 << TB_BIT));
+					dso_scope.tb_i = (dso_scope.tb_i + 1) % TIMEBASE_NR;
+					dso_scope.timebase = timebase_vals[dso_scope.tb_i];
+					break;
+				case l_cursor:
+					/* Move waveform upwards */
+					BitSet(dso_scope.btns_flags, (1 << LCURSOR_BIT));
+					wave.midpoint -= 10;
+					break;
+				case r_cursor:
+					/* Increase trigger level */
+					BitSet(dso_scope.btns_flags, (1 << RCURSOR_BIT));
+					dso_scope.trig_lvl_adc += 100;
+					break;
+			} 
+		}
+	
 		BitClr(dso_scope.btns_flags, (1 << PLUS_BTN_BIT));
 	}
 	
 	/* If MINUS button was pressed */
 	if(BitTest(dso_scope.btns_flags, (1 << MINUS_BTN_BIT))) {
-		switch(dso_scope.btn_selected) {
-			case tb:
-				/* Decrease timebase */
-				BitSet(dso_scope.btns_flags, (1 << TB_BIT));
-				if(!dso_scope.tb_i)
-					dso_scope.tb_i = TIMEBASE_NR;
-				--dso_scope.tb_i;
+		if(BitTest(dso_scope.btns_flags, (1 << ANALYZING_BIT))) {
+			BitSet(dso_scope.tvc_flags, (1 << TVC_MINUS_BIT));
+		} else {
+			switch(dso_scope.btn_selected) {
+				case tb:
+					/* Decrease timebase */
+					BitSet(dso_scope.btns_flags, (1 << TB_BIT));
+					if(!dso_scope.tb_i)
+						dso_scope.tb_i = TIMEBASE_NR;
+					--dso_scope.tb_i;
 
-				dso_scope.timebase = timebase_vals[dso_scope.tb_i];
-				break;
-			case l_cursor:
-				BitSet(dso_scope.btns_flags, (1 << LCURSOR_BIT));
-				/* Move waveform downwards */
-				wave.midpoint += 10;
-				break;
-			case r_cursor:
-				/* Decrease trigger lvl */
-				BitSet(dso_scope.btns_flags, (1 << RCURSOR_BIT));
-				dso_scope.trig_lvl_adc -= 100;
-				break;
+					dso_scope.timebase = timebase_vals[dso_scope.tb_i];
+					break;
+				case l_cursor:
+					BitSet(dso_scope.btns_flags, (1 << LCURSOR_BIT));
+					/* Move waveform downwards */
+					wave.midpoint += 10;
+					break;
+				case r_cursor:
+					/* Decrease trigger lvl */
+					BitSet(dso_scope.btns_flags, (1 << RCURSOR_BIT));
+					dso_scope.trig_lvl_adc -= 100;
+					break;
+			}
 		}
+
 		BitClr(dso_scope.btns_flags, (1 << MINUS_BTN_BIT));
 	}
 }

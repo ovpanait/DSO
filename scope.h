@@ -79,6 +79,10 @@ typedef enum {
 #define SERIAL_SEND_WF		0x08
 #define WF_SENDING		0x09
 
+/* Time-voltage coursor */
+#define TVC_PLUS_BIT		0
+#define TVC_MINUS_BIT		1
+
 struct waveform {
 	__IO U16 tmp_buf[SAMPLES_NR];
 	__IO U16 avg_buf[SAMPLES_NR];
@@ -121,10 +125,16 @@ struct scope {
 	__IO U8 debounced;
 	__IO U16 btns_flags;
 	__IO U8 btn_selected;
+
+	/* Time-voltage coursor */
+	U16 tvc_x;
+	U16 tvc_y;
+	U8 tvc_flags;
 };
 
 /* Display functions */
 void waveform_display(void);
+void wf_display_only(void);
 void get_digits(U32 n, U8 *dig_buf);
 
 /* Initialization */
@@ -148,5 +158,10 @@ U8 check_btn(GPIO_TypeDef* GPIOx, U16 GPIO_pin, U8 state);
 
 /* USART1 */
 void USART1_set_flags(void);
+
+/* Time-voltage coursor */
+void tvc_display(U16 tvc_x, U16 tvc_y);
+U16 tvc_update(void);
+void tvc_label_display(void);
 
 #endif
