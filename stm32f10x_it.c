@@ -177,6 +177,8 @@ void PendSV_Handler(void)
 {
 }*/
 
+#define INTERPOLATE(x1, y1, x2, y2, x) 	y1 + ((double)(x - x1) * (y2 - y1)) / (double)(x2 - x1)
+ 	
 void DMA1_Channel1_IRQHandler(void)
 {
 	/* Test on DMA Stream Transfer Complete interrupt */
@@ -197,16 +199,25 @@ void DMA1_Channel1_IRQHandler(void)
 				wave.avg_buf[i] = wave.avg_buf[i + 1] = (wave.avg_buf[i] + wave.tmp_buf[i / 2]) / 2;
 	} else if(dso_scope.timebase == 10 ) {
 		for(U16 i = 0; i < SAMPLES_NR; i += 4)
-			if(dso_scope.avg_flag)
-				wave.avg_buf[i] = 
-				wave.avg_buf[i+1] = 
-				wave.avg_buf[i+2] = 
-				wave.avg_buf[i+3] = wave.tmp_buf[i / 4];
-			else 
-				wave.avg_buf[i] = 
-				wave.avg_buf[i+1] = 
-				wave.avg_buf[i+2] = 
-				wave.avg_buf[i+3] = (wave.avg_buf[i] + wave.tmp_buf[i / 4]) / 2;
+			if(dso_scope.avg_flag) {
+				wave.avg_buf[i] = wave.tmp_buf[i / 4];
+				if (i + 4 == SAMPLES_NR)
+					wave.avg_buf[i + 3] = wave.tmp_buf[i / 4];
+				else
+					wave.avg_buf[i+3] = wave.tmp_buf[(i + 4) / 4];
+
+				wave.avg_buf[i + 1] = INTERPOLATE(0, wave.avg_buf[i], 4, wave.avg_buf[i + 3], 1);
+				wave.avg_buf[i + 2] = INTERPOLATE(0, wave.avg_buf[i], 4, wave.avg_buf[i + 3], 2);
+			} else {
+				wave.avg_buf[i] = (wave.avg_buf[i] + wave.tmp_buf[i / 4]) / 2;
+				if (i + 4 == SAMPLES_NR)
+					wave.avg_buf[i + 3] = (wave.avg_buf[i] + wave.tmp_buf[i / 4]) / 2;
+				else
+					wave.avg_buf[i+3] = (wave.avg_buf[i] + wave.tmp_buf[(i + 4) / 4]) / 2;				
+								
+				wave.avg_buf[i+1] = (wave.avg_buf[i] + INTERPOLATE(0, wave.avg_buf[i], 4, wave.avg_buf[i + 3], 1)) / 2;
+				wave.avg_buf[i+2] = (wave.avg_buf[i] + INTERPOLATE(0, wave.avg_buf[i], 4, wave.avg_buf[i + 3], 2)) / 2;
+			}
 	}
 	else {
 		for(U16 i = 0; i < SAMPLES_NR; ++i)
@@ -283,6 +294,8 @@ void ADC1_2_IRQHandler(void)
 	
 	/* Start averaging */
 	dso_scope.avg_flag = 1;
+	if(dso_scope.timebase == 10)
+		dso_scope.avg_total = 1;
 
 	/* Enable DMA on channel 1 (ADC1) */
 	DMA_Cmd(DMA1_Channel1, ENABLE);
