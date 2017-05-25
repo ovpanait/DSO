@@ -351,15 +351,10 @@ void btns_update(void)
 
 	/* If SEL button was pressed */
 	if(BitTest(dso_scope.btns_flags, (1 << SEL_BTN_BIT))) {
-		switch(dso_scope.btn_selected = ( dso_scope.btn_selected + 1 ) % SEL_NR) {
-		case l_cursor:
-			BitSet(dso_scope.btns_flags, (1 << LCURSOR_BIT));
-			break;
-		case r_cursor:
-			BitSet(dso_scope.btns_flags, (1 << RCURSOR_BIT));
-			break;
-		}
+		dso_scope.btn_selected = ( dso_scope.btn_selected + 1 ) % SEL_NR;
 		BitClr(dso_scope.btns_flags, (1 << SEL_BTN_BIT));
+		BitSet(dso_scope.btns_flags, (1 << LCURSOR_BIT));
+		BitSet(dso_scope.btns_flags, (1 << RCURSOR_BIT));
 		BitSet(dso_scope.btns_flags, (1 << TB_BIT));		
 	}
 

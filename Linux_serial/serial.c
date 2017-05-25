@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 				printf("%d\n", waveform[i]);*/
 			wf_printf(plot_file, waveform, SAMPLES_NR, calc_samp_int(tb_us));
 			fclose(plot_file);
-			plot_wf();	
+			plot_wf();
 		}
 	}
 	
