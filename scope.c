@@ -314,7 +314,7 @@ U8 check_btn(GPIO_TypeDef* GPIOx, U16 GPIO_pin, U8 state){
 void btns_update(void)
 {
 	/* Test for waveform retrieve */
-	if(BitTest(dso_scope.btns_flags, (1 << SS_CAPTURED_BIT)) && dso_scope.RX_command == SERIAL_SEND_WF) {
+	if(BitTest(dso_scope.btns_flags, (1 << SEND_WF_BIT))) {
 		/* Send timebase */
 		uputU16(dso_scope.timebase, USART1);
 
@@ -325,6 +325,8 @@ void btns_update(void)
 		/* Reset flags */	
 		dso_scope.RX_flag = RX_WAITING;
 		dso_scope.RX_command = 0;
+		
+		BitClr(dso_scope.btns_flags, (1 << SEND_WF_BIT));
 	}
  
 	/* If OK button was pressed */
@@ -447,7 +449,9 @@ void USART1_set_flags(void)
 		BitSet(dso_scope.btns_flags, (1 << MINUS_BTN_BIT));
 		break;
 	case SERIAL_SEND_WF:
-		return;
+		if(BitTest(dso_scope.btns_flags, (1 << SS_CAPTURED_BIT)))
+			BitSet(dso_scope.btns_flags, (1 << SEND_WF_BIT));
+		break;
 	}
 
 	dso_scope.RX_flag = RX_WAITING;

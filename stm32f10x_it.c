@@ -342,14 +342,14 @@ void USART1_IRQHandler(void)
 {
   if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET) {
 	if(dso_scope.RX_flag == RESEND) {
-		UartPutc(RESEND, USART1);
+			UartPutc(RESEND, USART1);
 		return;
 	}
 
 	U8 received = USART_ReceiveData(USART1);
 	dso_scope.RX_command = received;
 
-	if(received == SERIAL_SEND_WF)
+	if(received == SERIAL_SEND_WF && BitTest(dso_scope.btns_flags, (1 << SS_CAPTURED_BIT)))
 		UartPutc(WF_SENDING, USART1);
 	else	
 		UartPutc(ACK, USART1);

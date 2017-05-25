@@ -49,6 +49,8 @@
 #define SS_STARTED_BIT		9
 #define SS_CAPTURED_BIT		10
 
+#define SEND_WF_BIT		11
+
 #define SEL_NR			3
 
 typedef enum {
